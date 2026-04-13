@@ -11,7 +11,7 @@ function memberFromStorage(): Member {
     if (!m?.id || !m?.email) return null;
     const role = m.role === "admin" || m.role === "agent" ? m.role : "agent";
     const enabled = m.enabled !== false;
-    return { id: m.id, email: m.email, name: m.name ?? "", role, enabled };
+    return { id: m.id, email: m.email, name: m.name ?? "", role, enabled, companyId: m.companyId ?? "" };
   } catch {
     return null;
   }

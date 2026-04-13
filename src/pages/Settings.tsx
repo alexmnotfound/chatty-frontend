@@ -14,6 +14,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [waPhoneNumberId, setWaPhoneNumberId] = useState("");
   const [waToken, setWaToken] = useState("");
+  const [waAppSecret, setWaAppSecret] = useState("");
   const [openAiToken, setOpenAiToken] = useState("");
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,10 +59,12 @@ export default function Settings() {
       const updated = await settings.update({
         whatsappPhoneNumberId: waPhoneNumberId.trim() || undefined,
         whatsappAccessToken: waToken.trim() || undefined,
+        whatsappAppSecret: waAppSecret.trim() || undefined,
         openAiApiKey: openAiToken.trim() || undefined,
       });
       setAppSettings(updated);
       setWaToken("");
+      setWaAppSecret("");
       setOpenAiToken("");
       toast("Configuración guardada", "success");
     } catch (e) {
@@ -130,6 +133,21 @@ export default function Settings() {
                         appSettings?.hasWhatsAppAccessToken
                           ? "Token configurado (escribí para reemplazar)"
                           : "Pegar token"
+                      }
+                    />
+                  )}
+                </FormGroup>
+                <FormGroup label="WhatsApp App Secret">
+                  {(props) => (
+                    <input
+                      {...props}
+                      type="password"
+                      value={waAppSecret}
+                      onChange={(e) => setWaAppSecret(e.target.value)}
+                      placeholder={
+                        appSettings?.hasWhatsAppAppSecret
+                          ? "App Secret configurado (escribí para reemplazar)"
+                          : "Pegar App Secret"
                       }
                     />
                   )}

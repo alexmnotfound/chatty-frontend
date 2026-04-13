@@ -45,6 +45,7 @@ export type AuthMember = {
   name: string;
   role: MemberRole;
   enabled?: boolean;
+  companyId: string;
 };
 
 export const auth = {
@@ -302,11 +303,68 @@ export type AppSettings = {
   whatsappAccessToken?: string;
   openAiApiKey?: string;
   hasWhatsAppAccessToken: boolean;
+  hasWhatsAppAppSecret: boolean;
   hasOpenAiApiKey: boolean;
 };
 
 export const settings = {
   get: () => api<AppSettings>("/settings"),
-  update: (data: Partial<Pick<AppSettings, "whatsappPhoneNumberId" | "whatsappAccessToken" | "openAiApiKey">>) =>
+  update: (data: Partial<{ whatsappPhoneNumberId: string; whatsappAccessToken: string; whatsappAppSecret: string; openAiApiKey: string }>) =>
     api<AppSettings>("/settings", { method: "PATCH", body: JSON.stringify(data) }),
+};
+
+// --- Super Admin API ---
+
+function getSuperToken(): string | null {
+  return localStorage.getItem("superToken");
+}
+
+async function superApi<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = getSuperToken();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+  const res = await fetch("/api/super" + path, { ...options, headers });
+  if (res.status === 401) {
+    localStorage.removeItem("superToken");
+    window.location.href = "/super/login";
+    throw new Error("No autorizado");
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || res.statusText);
+  }
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
+export type SuperAdmin = { id: string; email: string; name: string };
+export type CompanySummary = {
+  id: string;
+  name: string;
+  slug: string;
+  enabled: boolean;
+  createdAt: string;
+  teamMemberCount: number;
+  conversationCount: number;
+  whatsappPhoneNumberId: string | null;
+};
+
+export const superAdmin = {
+  login: (email: string, password: string) =>
+    superApi<{ token: string; admin: SuperAdmin }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+  me: () => superApi<{ admin: SuperAdmin }>("/auth/me"),
+  companies: {
+    list: () => superApi<CompanySummary[]>("/companies"),
+    get: (id: string) => superApi<CompanySummary & { hasWhatsAppAccessToken: boolean; hasWhatsAppAppSecret: boolean; hasOpenAiApiKey: boolean }>(`/companies/${id}`),
+    create: (data: { name: string; slug: string; adminEmail: string; adminPassword: string; adminName: string }) =>
+      superApi<{ id: string; name: string; slug: string }>("/companies", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<{ name: string; enabled: boolean }>) =>
+      superApi<{ id: string; name: string; slug: string; enabled: boolean }>(`/companies/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  },
 };
