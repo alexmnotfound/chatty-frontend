@@ -1,10 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSuperAuth } from "../SuperAuthContext";
+import ThemeToggle from "../ThemeToggle";
+import { Button, FormGroup } from "../components/ui";
+import { useToast } from "../components/ui/Toast";
 
 export default function SuperLogin() {
   const { login } = useSuperAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,8 +21,10 @@ export default function SuperLogin() {
     try {
       await login(email, password);
       navigate("/super");
-    } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al iniciar sesión";
+      setError(msg);
+      toast(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -26,24 +32,48 @@ export default function SuperLogin() {
 
   return (
     <div className="login-page">
-      <div className="login-card">
-        <h1>Super Admin</h1>
-        <p className="login-subtitle">Panel de administración de plataforma</p>
-        <form onSubmit={handleSubmit}>
-          {error && <div className="form-error">{error}</div>}
-          <div className="form-group">
-            <label>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <label>Contraseña</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            {loading ? "Ingresando..." : "Ingresar"}
-          </button>
-        </form>
+      <div className="login-theme-bar">
+        <span />
+        <ThemeToggle />
       </div>
+      <div className="login-brand">
+        <h1>Chatty</h1>
+        <p>Panel de administración de plataforma</p>
+      </div>
+      <form onSubmit={handleSubmit} className="card login-card">
+        <FormGroup label="Email">
+          {(props) => (
+            <input
+              {...props}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          )}
+        </FormGroup>
+        <FormGroup label="Contraseña">
+          {(props) => (
+            <input
+              {...props}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          )}
+        </FormGroup>
+        {error && (
+          <p style={{ color: "var(--danger)", background: "var(--danger-bg)", padding: "0.5rem 0.65rem", borderRadius: "var(--radius-md)", fontSize: "0.85rem", marginBottom: "0.65rem" }}>
+            {error}
+          </p>
+        )}
+        <Button type="submit" variant="primary" loading={loading} style={{ width: "100%" }}>
+          {loading ? "Ingresando..." : "Ingresar"}
+        </Button>
+      </form>
     </div>
   );
 }

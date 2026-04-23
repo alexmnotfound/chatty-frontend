@@ -3,6 +3,7 @@ import { useAuth } from "./AuthContext";
 import { SuperAuthProvider, useSuperAuth } from "./SuperAuthContext";
 import { ToastProvider } from "./components/ui/Toast";
 import Layout from "./Layout";
+import SuperLayout from "./SuperLayout";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Inbox from "./pages/Inbox";
@@ -12,7 +13,8 @@ import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 import Bots from "./pages/Bots";
 import SuperLogin from "./pages/SuperLogin";
-import SuperDashboard from "./pages/SuperDashboard";
+import SuperCompanies from "./pages/SuperCompanies";
+import SuperCompanyDetail from "./pages/SuperCompanyDetail";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { member } = useAuth();
@@ -44,7 +46,11 @@ export default function App() {
         <Route path="/bots" element={<Bots />} />
       </Route>
       <Route path="/super/login" element={<SuperAuthProvider><SuperLogin /></SuperAuthProvider>} />
-      <Route path="/super" element={<SuperAuthProvider><SuperProtected><SuperDashboard /></SuperProtected></SuperAuthProvider>} />
+      <Route element={<SuperAuthProvider><SuperProtected><SuperLayout /></SuperProtected></SuperAuthProvider>}>
+        <Route path="/super" element={<Navigate to="/super/companies" replace />} />
+        <Route path="/super/companies" element={<SuperCompanies />} />
+        <Route path="/super/companies/:id" element={<SuperCompanyDetail />} />
+      </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </ToastProvider>

@@ -352,6 +352,22 @@ export type CompanySummary = {
   whatsappPhoneNumberId: string | null;
 };
 
+export type CompanyDetail = CompanySummary & {
+  aiRoleCount: number;
+  taskCount: number;
+  hasWhatsAppAccessToken: boolean;
+  hasWhatsAppAppSecret: boolean;
+  hasOpenAiApiKey: boolean;
+};
+
+export type SuperCompanyTeamMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  enabled: boolean;
+};
+
 export const superAdmin = {
   login: (email: string, password: string) =>
     superApi<{ token: string; admin: SuperAdmin }>("/auth/login", {
@@ -361,7 +377,8 @@ export const superAdmin = {
   me: () => superApi<{ admin: SuperAdmin }>("/auth/me"),
   companies: {
     list: () => superApi<CompanySummary[]>("/companies"),
-    get: (id: string) => superApi<CompanySummary & { hasWhatsAppAccessToken: boolean; hasWhatsAppAppSecret: boolean; hasOpenAiApiKey: boolean }>(`/companies/${id}`),
+    get: (id: string) => superApi<CompanyDetail>(`/companies/${id}`),
+    getTeam: (id: string) => superApi<SuperCompanyTeamMember[]>(`/companies/${id}/team`),
     create: (data: { name: string; slug: string; adminEmail: string; adminPassword: string; adminName: string }) =>
       superApi<{ id: string; name: string; slug: string }>("/companies", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: Partial<{ name: string; enabled: boolean }>) =>

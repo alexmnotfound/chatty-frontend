@@ -1,6 +1,6 @@
 # Chatty — Frontend
 
-Interfaz web para Chatty: inbox de equipo de WhatsApp con agentes de IA y gestión de tareas.
+Interfaz web para Chatty: plataforma SaaS de inbox de equipo de WhatsApp con agentes de IA y gestión de tareas.
 
 ## Stack
 
@@ -12,7 +12,7 @@ Interfaz web para Chatty: inbox de equipo de WhatsApp con agentes de IA y gesti�
 ## Requisitos
 
 - Node 18+
-- Backend de Chatty corriendo en `:3000` (o la URL configurada)
+- Backend de Chatty corriendo en `:3000`
 
 ## Instalación
 
@@ -26,19 +26,45 @@ npm install
 npm run dev    # Vite dev server en :5173
 ```
 
+El dev server hace proxy de `/api` y `/webhook` al backend en `:3000` (configurado en `vite.config.ts`).
+
 ## Build y despliegue
 
 ```bash
-npm run build     # tsc + vite build → dist/
+npm run build     # tsc + vite build -> dist/
 npm run preview   # preview del build local
 ```
 
-En producción: servir `dist/` con Nginx u otro servidor estático.
+En producción: servir `dist/` con Nginx u otro servidor estático, con proxy reverso de `/api` y `/webhook` al backend.
 
-## Uso
+## Arquitectura multi-tenant
 
-- **Inbox**: listado de conversaciones por contacto. Al elegir una ves el hilo y si está en modo IA podés cambiar el rol (Recepcionista / Vendedor) o "Tomar conversación" para responder como humano.
-- **Tareas**: listado de tareas con filtros por estado y asignado. Desde una conversación podés crear una tarea; desde una tarea ves los mensajes ligados.
-- **Bots**: configuración de agentes de IA (roles, ejemplos, documentos PDF de conocimiento).
-- **Equipo**: gestión de miembros del equipo (solo admin).
-- **Configuración**: credenciales de WhatsApp y OpenAI.
+Chatty soporta múltiples empresas. Hay dos niveles de acceso:
+
+### Super Admin (`/super/login`)
+
+Administrador global de la plataforma. Puede:
+- Ver todas las empresas registradas
+- Crear nuevas empresas (con su admin inicial)
+- Habilitar/deshabilitar empresas
+
+Credenciales por defecto del seed: `super@chatty.com` / `superadmin123`
+
+### Empresa (`/login`)
+
+Cada empresa tiene sus propios usuarios y datos. Roles:
+
+- **Admin**: gestiona equipo, bots, credenciales de WhatsApp/OpenAI, ve dashboard y auditoría
+- **Agente**: atiende conversaciones y tareas
+
+Credenciales demo del seed: `admin@demo.com` / `admin123`
+
+## Páginas
+
+- **Inbox**: conversaciones por contacto. Modo IA (con roles Recepcionista/Vendedor) o modo humano.
+- **Tareas**: listado con filtros por estado y asignado. Se crean desde conversaciones.
+- **Dashboard**: métricas de conversaciones, tareas y actividad.
+- **Bots**: configuración de agentes de IA (prompt, ejemplos, PDFs de conocimiento).
+- **Equipo**: gestión de miembros (solo admin).
+- **Configuración**: credenciales de WhatsApp y OpenAI por empresa, tema claro/oscuro.
+- **Super Admin**: panel de gestión de empresas (solo super admin).
