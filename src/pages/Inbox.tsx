@@ -317,14 +317,40 @@ export default function Inbox() {
               )}
             </div>
             <div className="msg-list whatsapp-chat-bg">
-              {selected.messages.map((m) => (
-                <div key={m.id} className={`msg ${m.direction === "out" ? "out" : "in"} ${m.fromAi ? "bot" : ""}`}>
-                  <div>{m.body}</div>
-                  <div className="msg-meta">
-                    {formatDate(m.createdAt)} {m.fromAi && " (IA)"}
+              {selected.messages.map((m) => {
+                const attachMatch = m.body.match(/^\[(PDF|IMAGEN):([^\]]+)\]$/);
+                if (attachMatch) {
+                  const isImg = attachMatch[1] === "IMAGEN";
+                  const filename = attachMatch[2];
+                  const docId = isImg
+                    ? (filename.includes("miercoles") ? "img-santander" : "img-bbva")
+                    : "pdf-galicia";
+                  return (
+                    <div key={m.id} className={`msg ${m.direction === "out" ? "out" : "in"}`}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
+                        <span>{isImg ? "🖼️" : "📄"}</span>
+                        <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{filename}</span>
+                      </div>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => navigate(`/extractor/${docId}`)}
+                        style={{ fontSize: "0.78rem" }}
+                      >
+                        Extraer datos
+                      </button>
+                      <div className="msg-meta">{formatDate(m.createdAt)}</div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={m.id} className={`msg ${m.direction === "out" ? "out" : "in"} ${m.fromAi ? "bot" : ""}`}>
+                    <div>{m.body}</div>
+                    <div className="msg-meta">
+                      {formatDate(m.createdAt)} {m.fromAi && " (IA)"}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             {selected.status === "human" && (
               <form className="reply-form" onSubmit={send}>

@@ -4,6 +4,12 @@ import { aiRoles, type AiRole, type AiRoleExample } from "../api";
 import { useAuth } from "../AuthContext";
 import { FormGroup } from "../components/ui";
 import { useToast } from "../components/ui/Toast";
+import { StatStrip } from "../components/bot-rules/StatStrip";
+import { TabBar } from "../components/bot-rules/TabBar";
+import { ParametersSection } from "../components/bot-rules/ParametersSection";
+import { mockStats, mockRules } from "../components/bot-rules/mockData";
+import type { TabId, BotRules as BotRulesType } from "../components/bot-rules/types";
+import "../components/bot-rules/BotRules.css";
 
 export default function Bots() {
   const { member } = useAuth();
@@ -51,7 +57,7 @@ export default function Bots() {
   const activeRole = roles.find((r) => r.id === activeId) ?? roles[0] ?? null;
 
   return (
-    <div className="panel" style={{ flex: 1, overflow: "auto" }}>
+    <div className="panel" style={{ flex: 1, overflow: "auto", background: "var(--bg)" }}>
       <div className="panel-toolbar panel-toolbar--page">
         <div className="panel-toolbar-text">
           <strong>Reglas de bots</strong>
@@ -105,6 +111,7 @@ function RoleEditor({
   onSave: (id: string, name: string, systemPrompt: string) => void;
 }) {
   const [name, setName] = useState(role.name);
+  const [params, setParams] = useState<BotRulesType>({ ...mockRules, name: role.name });
   const [systemPrompt, setSystemPrompt] = useState(role.systemPrompt ?? "");
   const [examples, setExamples] = useState<AiRoleExample[]>(role.examples ?? []);
   const [newExampleTitle, setNewExampleTitle] = useState("");
@@ -119,6 +126,7 @@ function RoleEditor({
 
   useEffect(() => {
     setName(role.name);
+    setParams(prev => ({ ...prev, name: role.name }));
     setSystemPrompt(role.systemPrompt ?? "");
     setExamples(role.examples ?? []);
     setSelectedExampleId((role.examples ?? [])[0]?.id ?? null);
@@ -129,9 +137,18 @@ function RoleEditor({
     setFieldErrors({});
   }, [role.id, role.name, role.systemPrompt, role.examples, role.knowledgeFiles]);
 
+  const [activeTab, setActiveTab] = useState<TabId>('parameters');
+
   const dirty = name !== role.name || systemPrompt !== (role.systemPrompt ?? "");
   const maxExamplesReached = examples.length >= 3;
   const selectedExample = examples.find((ex) => ex.id === selectedExampleId) ?? null;
+
+  const tabCounts: Record<TabId, number> = {
+    parameters:   1,
+    instructions: (systemPrompt.match(/\{\{[\w.]+\}\}/g) ?? []).length,
+    examples:     examples.length,
+    files:        knowledgeFiles.length,
+  };
   const addExample = async () => {
     if (!newExampleTitle.trim() || !newExampleContent.trim() || maxExamplesReached) return;
     setSavingExample("new");
@@ -205,34 +222,49 @@ function RoleEditor({
   };
 
   return (
-    <div role="tabpanel" className="bots-layout">
+    <div role="tabpanel">
+      <StatStrip stats={mockStats} />
+      <TabBar active={activeTab} counts={tabCounts} onChange={setActiveTab} />
+
+      {activeTab === 'parameters' && (
+      <div style={{ padding: "0 1.25rem 2rem" }}>
+        <ParametersSection
+          rules={params}
+          onChange={(p) => {
+            setParams(prev => ({ ...prev, ...p }));
+            if (p.name !== undefined) setName(p.name);
+          }}
+        />
+        <div className="form-actions" style={{ marginTop: "1rem" }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={saving || !name.trim() || !systemPrompt.trim()}
+            onClick={() => onSave(role.id, params.name, systemPrompt)}
+          >
+            {saving ? "Guardando…" : "Guardar cambios"}
+          </button>
+        </div>
+      </div>
+      )}
+
+      {activeTab === 'instructions' && (
+      <div className="bots-layout">
       <article className="surface-card surface-card--accent bots-col-left">
         <header className="surface-card__head">
-          <span className="surface-card__eyebrow">Instrucciones</span>
-          <h2 className="surface-card__title">Comportamiento en WhatsApp</h2>
-          <p className="surface-card__desc">
-            Definí la personalidad y límites del bot. Id técnico: <code className="bot-editor-key">{role.key}</code>.
-          </p>
+          <span className="surface-card__eyebrow">System prompt</span>
+          <h2 className="surface-card__title">Reglas e instrucciones</h2>
+          <p className="surface-card__desc">Usá {"{{variable}}"} para insertar contexto dinámico.</p>
         </header>
         <div className="surface-card__body">
-          <FormGroup label="Nombre visible" error={fieldErrors.name}>
-            {(props) => (
-              <input
-                {...props}
-                value={name}
-                onChange={(e) => { setName(e.target.value); setFieldErrors((prev) => ({ ...prev, name: "" })); }}
-                onBlur={() => { if (!name.trim()) setFieldErrors((prev) => ({ ...prev, name: "El nombre no puede estar vacío" })); }}
-              />
-            )}
-          </FormGroup>
-          <FormGroup label="Reglas e instrucciones" error={fieldErrors.systemPrompt}>
+          <FormGroup label="Instrucciones" error={fieldErrors.systemPrompt}>
             {(props) => (
               <textarea
                 {...props}
                 value={systemPrompt}
                 onChange={(e) => { setSystemPrompt(e.target.value); setFieldErrors((prev) => ({ ...prev, systemPrompt: "" })); }}
                 onBlur={() => { if (!systemPrompt.trim()) setFieldErrors((prev) => ({ ...prev, systemPrompt: "Las instrucciones no pueden estar vacías" })); }}
-                rows={14}
+                rows={16}
               />
             )}
           </FormGroup>
@@ -254,7 +286,11 @@ function RoleEditor({
           </div>
         </div>
       </article>
+      </div>
+      )}
 
+      {activeTab === 'examples' && (
+      <div className="bots-layout">
       <div className="bots-col-right-wrap">
       <article className="surface-card bots-col-right bots-col-right-top">
         <header className="surface-card__head">
@@ -365,7 +401,13 @@ function RoleEditor({
         </div>
       </article>
 
-      <article className="surface-card bots-col-right">
+      </div>
+      </div>
+      )}
+
+      {activeTab === 'files' && (
+      <div className="bots-layout">
+      <article className="surface-card bots-col-left">
         <header className="surface-card__head">
           <span className="surface-card__eyebrow">Knowledge Base</span>
           <h2 className="surface-card__title">Documentos PDF</h2>
@@ -402,6 +444,7 @@ function RoleEditor({
         </div>
       </article>
       </div>
+      )}
     </div>
   );
 }

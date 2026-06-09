@@ -14,6 +14,8 @@ import {
   IconTasks,
   IconUsers,
   IconBot,
+  IconReceipt,
+  IconSheets,
 } from "./components/SidebarIcons";
 
 const SIDEBAR_COLLAPSED_KEY = "chatty-sidebar-collapsed";
@@ -152,6 +154,14 @@ export default function Layout() {
               <NavLink to="/bots" className={linkClass} title={collapsed ? "Reglas de bots" : undefined} onClick={() => setMobileOpen(false)}>
                 <IconBot className="sidebar-nav-icon" />
                 <span className="sidebar-nav-text">Reglas de bots</span>
+              </NavLink>
+              <NavLink to="/comprobantes" className={linkClass} title={collapsed ? "Comprobantes" : undefined} onClick={() => setMobileOpen(false)}>
+                <IconReceipt className="sidebar-nav-icon" />
+                <span className="sidebar-nav-text">Comprobantes</span>
+              </NavLink>
+              <NavLink to="/sheets-config" className={linkClass} title={collapsed ? "Google Sheets" : undefined} onClick={() => setMobileOpen(false)}>
+                <IconSheets className="sidebar-nav-icon" />
+                <span className="sidebar-nav-text">Google Sheets</span>
               </NavLink>
             </>
           )}

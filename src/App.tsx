@@ -12,6 +12,10 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 import Bots from "./pages/Bots";
+import BotRules from "./pages/BotRules";
+import Extractor from "./pages/Extractor";
+import SheetsConfig from "./pages/SheetsConfig";
+import Comprobantes from "./pages/Comprobantes";
 import SuperLogin from "./pages/SuperLogin";
 import SuperCompanies from "./pages/SuperCompanies";
 import SuperCompanyDetail from "./pages/SuperCompanyDetail";
@@ -44,6 +48,11 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/users" element={<Users />} />
         <Route path="/bots" element={<Bots />} />
+        <Route path="/bots/:id/rules" element={<BotRules />} />
+        <Route path="/comprobantes" element={<Comprobantes />} />
+        <Route path="/extractor" element={<Extractor />} />
+        <Route path="/extractor/:docId" element={<Extractor />} />
+        <Route path="/sheets-config" element={<SheetsConfig />} />
       </Route>
       <Route path="/super/login" element={<SuperAuthProvider><SuperLogin /></SuperAuthProvider>} />
       <Route element={<SuperAuthProvider><SuperProtected><SuperLayout /></SuperProtected></SuperAuthProvider>}>
