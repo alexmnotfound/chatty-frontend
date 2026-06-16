@@ -1,13 +1,37 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Search } from "lucide-react";
 import { conversations, aiRoles, team, tasks, bots as botsApi, emitInboxUnreadChanged, type Conversation, type AiRole, type Bot } from "../api";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../AuthContext";
+
+// Supabase-shaped types for list and messages
+interface ConversationItem {
+  id: string;
+  status: string;
+  unread_count: number;
+  updated_at: string;
+  contact: { wa_id: string; name: string | null } | null;
+  active_bot: { id: string; name: string } | null;
+}
+
+interface MessageItem {
+  id: string;
+  direction: string;
+  body: string;
+  from_ai: boolean;
+  created_at: string;
+  bot: { name: string } | null;
+}
 
 export default function Inbox() {
   const { conversationId } = useParams();
   const navigate = useNavigate();
-  const [list, setList] = useState<Conversation[]>([]);
+  const { member } = useAuth();
+  const [list, setList] = useState<ConversationItem[]>([]);
   const [selected, setSelected] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const activeConversationIdRef = useRef<string | null>(null);
   const [roles, setRoles] = useState<AiRole[]>([]);
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; email: string; enabled: boolean }>>([]);
   const [reply, setReply] = useState("");
@@ -23,88 +47,129 @@ export default function Inbox() {
 
   const filteredList = useMemo(() => {
     let items = list;
-    if (filterStatus === "unread") items = items.filter((c) => c.unreadCount > 0);
+    if (filterStatus === "unread") items = items.filter((c) => c.unread_count > 0);
     else if (filterStatus === "ai") items = items.filter((c) => c.status === "ai");
     else if (filterStatus === "human") items = items.filter((c) => c.status === "human");
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       items = items.filter(
         (c) =>
-          (c.contact.name || "").toLowerCase().includes(q) ||
-          c.contact.waId.includes(q) ||
-          (c.messages[0]?.body || "").toLowerCase().includes(q)
+          (c.contact?.name || "").toLowerCase().includes(q) ||
+          (c.contact?.wa_id || "").includes(q)
       );
     }
     return items;
   }, [list, searchQuery, filterStatus]);
 
-  const getUnreadTotal = (arr: Conversation[]) => arr.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+  const getUnreadTotal = (arr: ConversationItem[]) => arr.reduce((acc, c) => acc + (c.unread_count || 0), 0);
 
-  const upsertConversation = (updated: Conversation) => {
-    setList((prev) => {
-      const exists = prev.some((c) => c.id === updated.id);
-      const next = exists ? prev.map((c) => (c.id === updated.id ? updated : c)) : [updated, ...prev];
-      emitInboxUnreadChanged(getUnreadTotal(next));
-      return next;
-    });
-  };
+  async function loadConversations() {
+    if (!member?.companyId) return;
+    const { data } = await supabase
+      .from('conversations')
+      .select(`
+        id, status, unread_count, updated_at,
+        contact:contacts(wa_id, name),
+        active_bot:bots(id, name)
+      `)
+      .eq('company_id', member.companyId)
+      .order('updated_at', { ascending: false });
+    const items = (data ?? []) as unknown as ConversationItem[];
+    setList(items);
+    emitInboxUnreadChanged(getUnreadTotal(items));
+  }
 
-  const load = () => {
-    conversations.list().then((items) => {
-      setList(items);
-      emitInboxUnreadChanged(getUnreadTotal(items));
-    });
-    aiRoles.list().then(setRoles);
-    team.list().then(setTeamMembers);
-  };
+  async function loadMessages(convId: string) {
+    const { data } = await supabase
+      .from('messages')
+      .select('id, direction, body, from_ai, created_at, bot:bots(name)')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+    setMessages((data ?? []) as unknown as MessageItem[]);
+  }
+
+  async function markAsRead(convId: string) {
+    await supabase
+      .from('conversations')
+      .update({ unread_count: 0 })
+      .eq('id', convId);
+  }
 
   useEffect(() => {
-    load();
+    if (!member?.companyId) return;
+
+    loadConversations();
+    aiRoles.list().then(setRoles);
+    team.list().then(setTeamMembers);
     botsApi.list().then(setBotList).catch(console.error);
-  }, []);
+
+    const channel = supabase.channel('inbox-' + member.companyId)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'conversations',
+        filter: `company_id=eq.${member.companyId}`,
+      }, () => {
+        loadConversations();
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `company_id=eq.${member.companyId}`,
+      }, (payload) => {
+        const activeId = activeConversationIdRef.current;
+        if (payload.new && (payload.new as { conversation_id: string }).conversation_id === activeId) {
+          setMessages(prev => [...prev, payload.new as unknown as MessageItem]);
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [member?.companyId]);
 
   useEffect(() => {
     if (!conversationId) {
       setSelected(null);
+      setMessages([]);
+      activeConversationIdRef.current = null;
       return;
     }
+    activeConversationIdRef.current = conversationId;
+    // Load full conversation details (tasks, assignedTo, aiRole) from backend
     conversations.get(conversationId)
       .then((updated) => {
         setSelected(updated);
-        upsertConversation(updated);
         if (updated.unreadCount > 0) {
-          const optimisticRead = { ...updated, unreadCount: 0 };
-          setSelected(optimisticRead);
-          upsertConversation(optimisticRead);
-          conversations.setReadState(updated.id, false).then((readUpdated) => {
-            setSelected(readUpdated);
-            upsertConversation(readUpdated);
-          });
+          markAsRead(updated.id);
         }
       })
       .catch(() => setSelected(null));
+    // Load messages from Supabase
+    loadMessages(conversationId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
-  const open = (c: Conversation) => navigate(`/inbox/${c.id}`);
+  const open = (c: ConversationItem) => navigate(`/inbox/${c.id}`);
   const takeOver = () => {
     if (!selected) return;
     conversations.takeOver(selected.id, true).then((updated) => {
       setSelected(updated);
-      setList((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      loadConversations();
     });
   };
   const releaseToAi = () => {
     if (!selected) return;
     conversations.releaseToAi(selected.id).then((updated) => {
       setSelected(updated);
-      upsertConversation(updated);
+      loadConversations();
     });
   };
   const setAiRole = (aiRoleId: string) => {
     if (!selected) return;
     conversations.setAiRole(selected.id, aiRoleId).then((updated) => {
       setSelected(updated);
-      setList((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
     });
   };
   const send = async (e: React.FormEvent) => {
@@ -114,9 +179,9 @@ export default function Inbox() {
     try {
       await conversations.send(selected.id, reply.trim());
       setReply("");
+      // Messages will be pushed via Realtime; reload selected for metadata
       const updated = await conversations.get(selected.id);
       setSelected(updated);
-      setList((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
     } finally {
       setSending(false);
     }
@@ -124,12 +189,9 @@ export default function Inbox() {
   const toggleReadState = () => {
     if (!selected) return;
     const markAsUnread = selected.unreadCount === 0;
-    const optimistic = { ...selected, unreadCount: markAsUnread ? 1 : 0 };
-    setSelected(optimistic);
-    upsertConversation(optimistic);
     conversations.setReadState(selected.id, markAsUnread).then((updated) => {
       setSelected(updated);
-      upsertConversation(updated);
+      loadConversations();
     });
   };
   const createTask = async (e: React.FormEvent) => {
@@ -144,7 +206,6 @@ export default function Inbox() {
       });
       const updated = await conversations.get(selected.id);
       setSelected(updated);
-      upsertConversation(updated);
       setShowNewTask(false);
       setNewTaskTitle("");
       setNewTaskAssign("");
@@ -159,7 +220,7 @@ export default function Inbox() {
       await conversations.handoff(selected.id, botId);
       const updated = await conversations.get(selected.id);
       setSelected(updated);
-      upsertConversation(updated);
+      loadConversations();
     } catch (e) {
       console.error("Handoff failed", e);
     }
@@ -210,17 +271,14 @@ export default function Inbox() {
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(c); } }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong>{c.contact.name || c.contact.waId}</strong>
+                <strong>{c.contact?.name || c.contact?.wa_id}</strong>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                  {c.unreadCount > 0 && <span className="unread-badge">{c.unreadCount}</span>}
+                  {c.unread_count > 0 && <span className="unread-badge">{c.unread_count}</span>}
                   <span className={`badge ${c.status === "ai" ? "ai" : "human"}`}>{c.status === "ai" ? "IA" : "Humano"}</span>
                 </div>
               </div>
-              <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginTop: "0.25rem" }}>
-                {c.messages[0]?.body?.slice(0, 50) ?? "—"}
-              </div>
               <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.2rem" }}>
-                {formatDate(c.updatedAt)}
+                {formatDate(c.updated_at)}
               </div>
             </div>
           ))
@@ -332,7 +390,7 @@ export default function Inbox() {
               )}
             </div>
             <div className="msg-list whatsapp-chat-bg">
-              {selected.messages.map((m) => {
+              {messages.map((m) => {
                 const attachMatch = m.body.match(/^\[(PDF|IMAGEN):([^\]]+)\]$/);
                 if (attachMatch) {
                   const isImg = attachMatch[1] === "IMAGEN";
@@ -353,15 +411,15 @@ export default function Inbox() {
                       >
                         Extraer datos
                       </button>
-                      <div className="msg-meta">{formatDate(m.createdAt)}</div>
+                      <div className="msg-meta">{formatDate(m.created_at)}</div>
                     </div>
                   );
                 }
                 return (
-                  <div key={m.id} className={`msg ${m.direction === "out" ? "out" : "in"} ${m.fromAi ? "bot" : ""}`}>
+                  <div key={m.id} className={`msg ${m.direction === "out" ? "out" : "in"} ${m.from_ai ? "bot" : ""}`}>
                     <div>{m.body}</div>
                     <div className="msg-meta">
-                      {formatDate(m.createdAt)} {m.fromAi && " (IA)"}
+                      {formatDate(m.created_at)} {m.from_ai && " (IA)"}
                     </div>
                   </div>
                 );
