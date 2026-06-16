@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../api";
 import { useAuth } from "../AuthContext";
 import ThemeToggle from "../ThemeToggle";
 import { Button, FormGroup } from "../components/ui";
@@ -9,8 +8,6 @@ import { useToast } from "../components/ui/Toast";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [register, setRegister] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,12 +23,6 @@ export default function Login() {
 
   const validatePassword = (val: string) => {
     if (!val) return "La contraseña es obligatoria";
-    if (register && val.length < 6) return "La contraseña debe tener al menos 6 caracteres";
-    return "";
-  };
-
-  const validateName = (val: string) => {
-    if (register && !val.trim()) return "El nombre es obligatorio";
     return "";
   };
 
@@ -44,10 +35,6 @@ export default function Login() {
     if (emailErr) newErrors.email = emailErr;
     const passwordErr = validatePassword(password);
     if (passwordErr) newErrors.password = passwordErr;
-    if (register) {
-      const nameErr = validateName(name);
-      if (nameErr) newErrors.name = nameErr;
-    }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -55,13 +42,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      if (register) {
-        const res = await auth.register(email, password, name);
-        login(res.token, res.member);
-      } else {
-        const res = await auth.login(email, password);
-        login(res.token, res.member);
-      }
+      await login(email, password);
       navigate("/inbox", { replace: true });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error";
@@ -85,21 +66,6 @@ export default function Login() {
         <p>Inbox y tareas con WhatsApp</p>
       </div>
       <form onSubmit={submit} className="card login-card">
-        {register && (
-          <FormGroup label="Nombre" error={errors.name}>
-            {(props) => (
-              <input
-                {...props}
-                type="text"
-                value={name}
-                onChange={(e) => { setName(e.target.value); setErrors((prev) => ({ ...prev, name: "" })); }}
-                onBlur={() => { const err = validateName(name); if (err) setErrors((prev) => ({ ...prev, name: err })); }}
-                required
-                autoComplete="name"
-              />
-            )}
-          </FormGroup>
-        )}
         <FormGroup label="Email" error={errors.email}>
           {(props) => (
             <input
@@ -122,8 +88,7 @@ export default function Login() {
               onChange={(e) => { setPassword(e.target.value); setErrors((prev) => ({ ...prev, password: "" })); }}
               onBlur={() => { const err = validatePassword(password); if (err) setErrors((prev) => ({ ...prev, password: err })); }}
               required
-              autoComplete={register ? "new-password" : "current-password"}
-              minLength={register ? 6 : 1}
+              autoComplete="current-password"
             />
           )}
         </FormGroup>
@@ -133,16 +98,14 @@ export default function Login() {
           </p>
         )}
         <Button type="submit" variant="primary" loading={loading} style={{ width: "100%", marginBottom: "0.5rem" }}>
-          {register ? "Registrarse" : "Entrar"}
+          Entrar
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          style={{ width: "100%", fontSize: "0.9rem" }}
-          onClick={() => { setRegister(!register); setError(""); setErrors({}); }}
-        >
-          {register ? "Ya tengo cuenta" : "Crear cuenta"}
-        </Button>
+        <p style={{ textAlign: "center", fontSize: "0.9rem", color: "var(--text-secondary)", marginTop: "0.5rem" }}>
+          ¿No tenés cuenta?{" "}
+          <Link to="/register" style={{ color: "var(--accent)" }}>
+            Crear cuenta
+          </Link>
+        </p>
       </form>
     </div>
   );

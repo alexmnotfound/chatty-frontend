@@ -6,6 +6,7 @@ import Layout from "./Layout";
 import SuperLayout from "./SuperLayout";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Inbox from "./pages/Inbox";
 import Tasks from "./pages/Tasks";
 import Dashboard from "./pages/Dashboard";
@@ -39,6 +40,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route element={<Protected><Layout /></Protected>}>
         <Route path="/inbox" element={<Inbox />} />
         <Route path="/inbox/:conversationId" element={<Inbox />} />

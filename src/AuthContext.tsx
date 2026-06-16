@@ -1,73 +1,86 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { auth, type AuthMember } from "./api";
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from './lib/supabase';
 
-type Member = AuthMember | null;
-
-function memberFromStorage(): Member {
-  try {
-    const s = localStorage.getItem("member");
-    if (!s) return null;
-    const m = JSON.parse(s) as Partial<AuthMember>;
-    if (!m?.id || !m?.email) return null;
-    const role = m.role === "admin" || m.role === "agent" ? m.role : "agent";
-    const enabled = m.enabled !== false;
-    return { id: m.id, email: m.email, name: m.name ?? "", role, enabled, companyId: m.companyId ?? "" };
-  } catch {
-    return null;
-  }
+interface Member {
+  id: string;
+  userId: string;
+  companyId: string;
+  role: string;
+  email?: string;
+  name?: string;
+  enabled?: boolean;
 }
 
-const AuthContext = createContext<{
-  member: Member;
-  setMember: (m: Member) => void;
-  login: (token: string, member: Member) => void;
-  logout: () => void;
-}>(null!);
+interface AuthContextType {
+  member: Member | null;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  loading: boolean;
+  setMember: (member: Member | null) => void;
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [member, setMember] = useState<Member>(() => memberFromStorage());
+const AuthContext = createContext<AuthContextType | null>(null);
+
+async function loadMemberForSession(session: Session | null): Promise<Member | null> {
+  if (!session) return null;
+  const { data } = await supabase
+    .from('company_members')
+    .select('id, user_id, company_id, role')
+    .eq('user_id', session.user.id)
+    .single();
+  if (!data) return null;
+  return {
+    id: data.id,
+    userId: data.user_id,
+    companyId: data.company_id,
+    role: data.role,
+    email: session.user.email,
+  };
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [member, setMember] = useState<Member | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    let cancelled = false;
-    auth
-      .me()
-      .then((r) => {
-        if (!cancelled) {
-          setMember(r.member);
-          localStorage.setItem("member", JSON.stringify(r.member));
-        }
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      loadMemberForSession(session)
+        .then(setMember)
+        .finally(() => setLoading(false));
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      loadMemberForSession(session).then(setMember);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = useCallback((token: string, m: Member) => {
-    if (token) localStorage.setItem("token", token);
-    if (m) localStorage.setItem("member", JSON.stringify(m));
-    setMember(m);
-  }, []);
+  async function login(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+  }
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("member");
+  async function logout() {
+    await supabase.auth.signOut();
     setMember(null);
-  }, []);
-
-  useEffect(() => {
-    if (member) localStorage.setItem("member", JSON.stringify(member));
-  }, [member]);
+    setSession(null);
+  }
 
   return (
-    <AuthContext.Provider value={{ member, setMember, login, logout }}>
+    <AuthContext.Provider value={{ member, session, login, logout, loading, setMember }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
 }
