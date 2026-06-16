@@ -367,6 +367,7 @@ export default function Inbox() {
                 );
               })}
             </div>
+            {selected?.status === "ai" && (
             <div style={{ display: "flex", gap: "8px", padding: "12px", borderTop: "1px solid var(--border)" }}>
               <select
                 value={selectedBotId}
@@ -386,6 +387,7 @@ export default function Inbox() {
                 Transferir
               </button>
             </div>
+            )}
             {selected.status === "human" && (
               <form className="reply-form" onSubmit={send}>
                 <input
