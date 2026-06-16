@@ -20,18 +20,29 @@ export default function Register() {
       const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
       if (authError || !authData.user) throw new Error(authError?.message ?? 'Error al crear usuario');
 
-      const slug = companyName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      const { data: company, error: companyError } = await supabase
-        .from('companies')
-        .insert({ name: companyName, slug, active: false })
-        .select()
-        .single();
-      if (companyError || !company) throw new Error('Error al crear empresa');
+      // From here, if we fail, the auth user exists but has no company
+      try {
+        const slug = companyName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        if (!slug) throw new Error('El nombre de la empresa debe contener al menos un carácter alfanumérico');
 
-      const { error: memberError } = await supabase
-        .from('company_members')
-        .insert({ company_id: company.id, user_id: authData.user.id, role: 'admin' });
-      if (memberError) throw new Error('Error al crear membresía');
+        const { data: company, error: companyError } = await supabase
+          .from('companies')
+          .insert({ name: companyName, slug, active: false })
+          .select()
+          .single();
+        if (companyError || !company) throw new Error('Error al crear empresa');
+
+        const { error: memberError } = await supabase
+          .from('company_members')
+          .insert({ company_id: company.id, user_id: authData.user.id, role: 'admin' });
+        if (memberError) throw new Error('Error al crear membresía');
+      } catch {
+        // User was created in Supabase Auth but company setup failed
+        throw new Error(
+          'Tu cuenta fue creada pero hubo un error al configurar tu empresa. ' +
+          'Contactá a soporte con tu email para que activemos tu cuenta manualmente.'
+        );
+      }
 
       navigate('/login?registered=1');
     } catch (err: unknown) {
