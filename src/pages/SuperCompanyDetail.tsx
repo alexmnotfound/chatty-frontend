@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { superAdmin, type CompanyDetail, type SuperCompanyTeamMember } from "../api";
+import { superAdmin, type CompanyDetail, type SuperCompanyTeamMember, type SuperCompanyBot } from "../api";
 import { Users, MessageSquare, Bot, ListChecks, Phone, Key, Check, X, ArrowLeft } from "lucide-react";
 import { SurfaceCard, PageHeader, Button, Skeleton, ConfirmDialog } from "../components/ui";
 import { useToast } from "../components/ui/Toast";
@@ -35,8 +35,10 @@ export default function SuperCompanyDetail() {
 
   const [detail, setDetail] = useState<CompanyDetail | null>(null);
   const [teamMembers, setTeamMembers] = useState<SuperCompanyTeamMember[]>([]);
+  const [bots, setBots] = useState<SuperCompanyBot[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingTeam, setLoadingTeam] = useState(true);
+  const [loadingBots, setLoadingBots] = useState(true);
   const [confirmToggle, setConfirmToggle] = useState(false);
 
   const loadDetail = useCallback(async () => {
@@ -64,10 +66,34 @@ export default function SuperCompanyDetail() {
     }
   }, [id, toast]);
 
+  const loadBots = useCallback(async () => {
+    if (!id) return;
+    try {
+      const data = await superAdmin.companies.getBots(id);
+      setBots(data);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Error al cargar bots", "error");
+    } finally {
+      setLoadingBots(false);
+    }
+  }, [id, toast]);
+
   useEffect(() => {
     loadDetail();
     loadTeam();
-  }, [loadDetail, loadTeam]);
+    loadBots();
+  }, [loadDetail, loadTeam, loadBots]);
+
+  const handleToggleBotActive = async (botId: string, active: boolean) => {
+    if (!id) return;
+    try {
+      await superAdmin.companies.toggleBotActive(id, botId, active);
+      setBots(prev => prev.map(b => b.id === botId ? { ...b, active } : b));
+      toast(active ? "Bot activado" : "Bot desactivado", "success");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Error", "error");
+    }
+  };
 
   const handleToggleEnabled = async () => {
     if (!detail || !id) return;
@@ -202,6 +228,53 @@ export default function SuperCompanyDetail() {
                         ) : (
                           <span className="badge">Deshabilitado</span>
                         )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SurfaceCard>
+
+        <SurfaceCard
+          eyebrow="Bots"
+          title="Bots"
+          description={loadingBots ? "Cargando..." : `${bots.length} ${bots.length === 1 ? "bot" : "bots"} configurados.`}
+          flush
+        >
+          {loadingBots ? (
+            <Skeleton variant="table-row" count={2} />
+          ) : bots.length === 0 ? (
+            <p style={{ padding: "1.5rem", textAlign: "center", color: "var(--muted)" }}>
+              Esta empresa no tiene bots.
+            </p>
+          ) : (
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Proveedor IA</th>
+                    <th>Modelo</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bots.map((bot) => (
+                    <tr key={bot.id} className={!bot.active ? "is-disabled" : undefined}>
+                      <td><strong style={{ fontWeight: 600 }}>{bot.name}</strong></td>
+                      <td className="cell-muted">{bot.aiProvider ?? "—"}</td>
+                      <td className="cell-muted">{bot.aiModel ?? "—"}</td>
+                      <td>
+                        <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", fontSize: "0.85rem" }}>
+                          <input
+                            type="checkbox"
+                            checked={bot.active}
+                            onChange={(e) => handleToggleBotActive(bot.id, e.target.checked)}
+                          />
+                          {bot.active ? <span className="badge ai">Activo</span> : <span className="badge">Inactivo</span>}
+                        </label>
                       </td>
                     </tr>
                   ))}

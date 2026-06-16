@@ -425,6 +425,15 @@ export type SuperCompanyTeamMember = {
   enabled: boolean;
 };
 
+export type SuperCompanyBot = {
+  id: string;
+  name: string;
+  active: boolean;
+  aiProvider: string | null;
+  aiModel: string | null;
+  whatsappPhoneNumberId: string | null;
+};
+
 export const superAdmin = {
   login: (email: string, password: string) =>
     superApi<{ token: string; admin: SuperAdmin }>("/auth/login", {
@@ -440,5 +449,11 @@ export const superAdmin = {
       superApi<{ id: string; name: string; slug: string }>("/companies", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: Partial<{ name: string; enabled: boolean }>) =>
       superApi<{ id: string; name: string; slug: string; enabled: boolean }>(`/companies/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    getBots: (id: string) => superApi<SuperCompanyBot[]>(`/companies/${id}/bots`),
+    toggleBotActive: (companyId: string, botId: string, active: boolean) =>
+      superApi<{ ok: boolean }>(`/companies/${companyId}/bots/${botId}/active`, {
+        method: "PATCH",
+        body: JSON.stringify({ active }),
+      }),
   },
 };
