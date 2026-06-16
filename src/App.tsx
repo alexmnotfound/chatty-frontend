@@ -16,6 +16,7 @@ import Bots from "./pages/Bots";
 import BotRules from "./pages/BotRules";
 import Extractor from "./pages/Extractor";
 import SheetsConfig from "./pages/SheetsConfig";
+import BotBuilder from "./pages/BotBuilder";
 import Comprobantes from "./pages/Comprobantes";
 import SuperLogin from "./pages/SuperLogin";
 import SuperCompanies from "./pages/SuperCompanies";
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/users" element={<Users />} />
         <Route path="/bots" element={<Bots />} />
+        <Route path="/bots/new" element={<BotBuilder />} />
         <Route path="/bots/:id/rules" element={<BotRules />} />
         <Route path="/comprobantes" element={<Comprobantes />} />
         <Route path="/extractor" element={<Extractor />} />

@@ -313,6 +313,58 @@ export const settings = {
     api<AppSettings>("/settings", { method: "PATCH", body: JSON.stringify(data) }),
 };
 
+// --- Bots ---
+
+export interface Bot {
+  id: string;
+  name: string;
+  aiProvider: string | null;
+  aiModel: string | null;
+  gender: string;
+  tone: string;
+  active: boolean;
+  createdAt: string;
+  whatsappPhoneNumberId: string | null;
+  systemPrompt: string | null;
+  examples: { id: string; userMessage: string; botResponse: string; order: number }[];
+  hasWhatsappToken?: boolean;
+  hasWhatsappAppSecret?: boolean;
+  hasAiApiKey?: boolean;
+}
+
+export interface BotForm {
+  name: string;
+  whatsappPhoneNumberId?: string;
+  whatsappAccessToken?: string;
+  whatsappAppSecret?: string;
+  aiProvider?: string;
+  aiApiKey?: string;
+  aiModel?: string;
+  systemPrompt?: string;
+  gender: string;
+  tone: string;
+  examples?: { userMessage: string; botResponse: string; order: number }[];
+}
+
+export const bots = {
+  list: () => api<Bot[]>("/bots"),
+  get: (id: string) => api<Bot>(`/bots/${id}`),
+  create: (data: Partial<BotForm>) =>
+    api<{ id: string }>("/bots", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<BotForm>) =>
+    api<void>("/bots/" + id, { method: "PATCH", body: JSON.stringify(data) }),
+  verify: (phoneNumberId: string, accessToken: string) =>
+    api<{ valid: boolean; displayPhoneNumber: string }>("/bots/verify", {
+      method: "POST",
+      body: JSON.stringify({ phoneNumberId, accessToken }),
+    }),
+  testAi: (provider: string, apiKey: string, model: string) =>
+    api<{ valid: boolean; response: string }>("/bots/test-ai", {
+      method: "POST",
+      body: JSON.stringify({ provider, apiKey, model }),
+    }),
+};
+
 // --- Super Admin API ---
 
 function getSuperToken(): string | null {
