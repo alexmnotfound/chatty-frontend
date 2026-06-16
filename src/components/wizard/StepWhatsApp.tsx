@@ -81,9 +81,11 @@ export default function StepWhatsApp({ data, onChange }: Props) {
       )}
 
       <div className="wizard-webhook-hint">
-        <strong>URL del webhook para Meta:</strong>
+        <strong>URL del webhook para Meta (disponible al guardar):</strong>
         <br />
-        <code>{`${import.meta.env.VITE_API_URL ?? "https://api.tudominio.com"}/webhook/[bot-id]`}</code>
+        <code>{`${import.meta.env.VITE_API_URL ?? "https://api.tudominio.com"}/webhook/{bot-id}`}</code>
+        <br />
+        <small>(el ID del bot estará disponible después de guardar)</small>
       </div>
     </div>
   );

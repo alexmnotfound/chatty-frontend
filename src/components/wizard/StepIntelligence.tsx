@@ -4,7 +4,7 @@ import { FormGroup } from "../ui";
 
 const MODELS: Record<string, string[]> = {
   openai: ["gpt-4o-mini", "gpt-4o"],
-  claude: ["claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-opus-4-5"],
+  claude: ["claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-fable-5"],
 };
 
 const GENDERS = [
@@ -177,7 +177,7 @@ export default function StepIntelligence({ data, onChange }: Props) {
         </div>
 
         {examples.map((ex, i) => (
-          <div key={i} className="wizard-example">
+          <div key={ex.order + "-" + ex.userMessage.slice(0, 12)} className="wizard-example">
             <div className="wizard-example__cols">
               <textarea
                 className="wizard-example__area"
