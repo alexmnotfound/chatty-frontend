@@ -99,8 +99,8 @@ export default function SuperCompanyDetail() {
     if (!detail || !id) return;
     setConfirmToggle(false);
     try {
-      await superAdmin.companies.update(id, { enabled: !detail.enabled });
-      toast(detail.enabled ? "Empresa deshabilitada" : "Empresa habilitada", "success");
+      await superAdmin.companies.update(id, { active: !detail.active });
+      toast(detail.active ? "Empresa deshabilitada" : "Empresa habilitada", "success");
       loadDetail();
     } catch (e) {
       toast(e instanceof Error ? e.message : "Error", "error");
@@ -165,7 +165,7 @@ export default function SuperCompanyDetail() {
             <div className="account-stat">
               <div className="account-stat__label">Estado</div>
               <div className="account-stat__value">
-                {detail.enabled ? (
+                {detail.active ? (
                   <span className="badge ai">Activa</span>
                 ) : (
                   <span className="badge">Deshabilitada</span>
@@ -286,31 +286,31 @@ export default function SuperCompanyDetail() {
 
         <SurfaceCard
           eyebrow="Acciones"
-          title={detail.enabled ? "Deshabilitar empresa" : "Habilitar empresa"}
-          description={detail.enabled
+          title={detail.active ? "Deshabilitar empresa" : "Habilitar empresa"}
+          description={detail.active
             ? "Los miembros no podran iniciar sesion ni recibir mensajes."
             : "Los miembros podran volver a usar la plataforma."
           }
         >
           <Button
-            variant={detail.enabled ? "danger-ghost" : "primary"}
+            variant={detail.active ? "danger-ghost" : "primary"}
             onClick={() => setConfirmToggle(true)}
           >
-            {detail.enabled ? <><X size={14} /> Deshabilitar</> : <><Check size={14} /> Habilitar</>}
+            {detail.active ? <><X size={14} /> Deshabilitar</> : <><Check size={14} /> Habilitar</>}
           </Button>
         </SurfaceCard>
       </div>
 
       <ConfirmDialog
         open={confirmToggle}
-        title={detail.enabled ? `Deshabilitar ${detail.name}?` : `Habilitar ${detail.name}?`}
-        description={detail.enabled
+        title={detail.active ? `Deshabilitar ${detail.name}?` : `Habilitar ${detail.name}?`}
+        description={detail.active
           ? "Los miembros de esta empresa no podran iniciar sesion ni recibir mensajes."
           : "Los miembros de esta empresa podran volver a usar la plataforma."
         }
-        confirmLabel={detail.enabled ? "Deshabilitar" : "Habilitar"}
+        confirmLabel={detail.active ? "Deshabilitar" : "Habilitar"}
         cancelLabel="Cancelar"
-        variant={detail.enabled ? "danger" : undefined}
+        variant={detail.active ? "danger" : undefined}
         onConfirm={handleToggleEnabled}
         onCancel={() => setConfirmToggle(false)}
       />

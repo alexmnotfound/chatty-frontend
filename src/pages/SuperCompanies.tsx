@@ -185,7 +185,7 @@ export default function SuperCompanies() {
                   {companies.map((c) => (
                     <tr
                       key={c.id}
-                      className={!c.enabled ? "is-disabled" : undefined}
+                      className={!c.active ? "is-disabled" : undefined}
                       style={{ cursor: "pointer" }}
                     >
                       <td>
@@ -201,7 +201,7 @@ export default function SuperCompanies() {
                       <td>{c.teamMemberCount}</td>
                       <td>{c.conversationCount}</td>
                       <td>
-                        {c.enabled ? (
+                        {c.active ? (
                           <span className="badge ai">Activa</span>
                         ) : (
                           <span className="badge">Deshabilitada</span>

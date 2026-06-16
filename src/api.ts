@@ -402,7 +402,7 @@ export type CompanySummary = {
   id: string;
   name: string;
   slug: string;
-  enabled: boolean;
+  active: boolean;
   createdAt: string;
   teamMemberCount: number;
   conversationCount: number;
@@ -447,8 +447,8 @@ export const superAdmin = {
     getTeam: (id: string) => superApi<SuperCompanyTeamMember[]>(`/companies/${id}/team`),
     create: (data: { name: string; slug: string; adminEmail: string; adminPassword: string; adminName: string }) =>
       superApi<{ id: string; name: string; slug: string }>("/companies", { method: "POST", body: JSON.stringify(data) }),
-    update: (id: string, data: Partial<{ name: string; enabled: boolean }>) =>
-      superApi<{ id: string; name: string; slug: string; enabled: boolean }>(`/companies/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<{ name: string; active: boolean }>) =>
+      superApi<{ id: string; name: string; slug: string; active: boolean }>(`/companies/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     getBots: (id: string) => superApi<SuperCompanyBot[]>(`/companies/${id}/bots`),
     toggleBotActive: (companyId: string, botId: string, active: boolean) =>
       superApi<{ ok: boolean }>(`/companies/${companyId}/bots/${botId}/active`, {
