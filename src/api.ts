@@ -120,6 +120,11 @@ export const conversations = {
       method: "POST",
       body: JSON.stringify({ text }),
     }),
+  handoff: (id: string, botId: string | null) =>
+    api<{ ok: boolean }>(`/conversations/${id}/handoff`, {
+      method: "POST",
+      body: JSON.stringify({ botId }),
+    }),
 };
 
 export type Task = {

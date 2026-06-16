@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Search } from "lucide-react";
-import { conversations, aiRoles, team, tasks, emitInboxUnreadChanged, type Conversation, type AiRole } from "../api";
+import { conversations, aiRoles, team, tasks, bots as botsApi, emitInboxUnreadChanged, type Conversation, type AiRole, type Bot } from "../api";
 
 export default function Inbox() {
   const { conversationId } = useParams();
@@ -18,6 +18,8 @@ export default function Inbox() {
   const [creatingTask, setCreatingTask] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"" | "ai" | "human" | "unread">("");
+  const [botList, setBotList] = useState<Bot[]>([]);
+  const [selectedBotId, setSelectedBotId] = useState<string>("");
 
   const filteredList = useMemo(() => {
     let items = list;
@@ -58,6 +60,7 @@ export default function Inbox() {
 
   useEffect(() => {
     load();
+    botsApi.list().then(setBotList).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -147,6 +150,18 @@ export default function Inbox() {
       setNewTaskAssign("");
     } finally {
       setCreatingTask(false);
+    }
+  };
+
+  const handleHandoff = async (botId: string | null) => {
+    if (!selected) return;
+    try {
+      await conversations.handoff(selected.id, botId);
+      const updated = await conversations.get(selected.id);
+      setSelected(updated);
+      upsertConversation(updated);
+    } catch (e) {
+      console.error("Handoff failed", e);
     }
   };
 
@@ -351,6 +366,25 @@ export default function Inbox() {
                   </div>
                 );
               })}
+            </div>
+            <div style={{ display: "flex", gap: "8px", padding: "12px", borderTop: "1px solid var(--border)" }}>
+              <select
+                value={selectedBotId}
+                onChange={(e) => setSelectedBotId(e.target.value)}
+                style={{ fontSize: "13px", padding: "6px 8px", border: "1px solid var(--border)", borderRadius: "6px", background: "var(--bg)", color: "var(--text)", flex: 1 }}
+              >
+                <option value="">Transferir a humano</option>
+                {botList.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => handleHandoff(selectedBotId || null)}
+                style={{ fontSize: "13px", padding: "6px 12px", border: "1px solid var(--accent)", borderRadius: "6px", background: "transparent", color: "var(--accent)", cursor: "pointer", whiteSpace: "nowrap" }}
+              >
+                Transferir
+              </button>
             </div>
             {selected.status === "human" && (
               <form className="reply-form" onSubmit={send}>
