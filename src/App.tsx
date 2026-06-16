@@ -18,6 +18,7 @@ import Extractor from "./pages/Extractor";
 import SheetsConfig from "./pages/SheetsConfig";
 import BotBuilder from "./pages/BotBuilder";
 import Comprobantes from "./pages/Comprobantes";
+import Observability from "./pages/Observability";
 import SuperLogin from "./pages/SuperLogin";
 import SuperCompanies from "./pages/SuperCompanies";
 import SuperCompanyDetail from "./pages/SuperCompanyDetail";
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/extractor" element={<Extractor />} />
         <Route path="/extractor/:docId" element={<Extractor />} />
         <Route path="/sheets-config" element={<SheetsConfig />} />
+        <Route path="/observability" element={<Observability />} />
       </Route>
       <Route path="/super/login" element={<SuperAuthProvider><SuperLogin /></SuperAuthProvider>} />
       <Route element={<SuperAuthProvider><SuperProtected><SuperLayout /></SuperProtected></SuperAuthProvider>}>

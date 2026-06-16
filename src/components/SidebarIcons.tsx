@@ -94,6 +94,16 @@ export function IconChevronRight({ className }: IconProps) {
   );
 }
 
+export function IconBarChart({ className }: IconProps) {
+  return (
+    <svg className={className} width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="10" width="4" height="11" rx="1" />
+      <rect x="10" y="6" width="4" height="15" rx="1" />
+      <rect x="17" y="3" width="4" height="18" rx="1" />
+    </svg>
+  );
+}
+
 export function IconLogOut({ className }: IconProps) {
   return (
     <svg className={className} width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

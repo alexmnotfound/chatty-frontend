@@ -16,6 +16,7 @@ import {
   IconBot,
   IconReceipt,
   IconSheets,
+  IconBarChart,
 } from "./components/SidebarIcons";
 
 const SIDEBAR_COLLAPSED_KEY = "chatty-sidebar-collapsed";
@@ -146,6 +147,16 @@ export default function Layout() {
           >
             <IconDashboard className="sidebar-nav-icon" />
             <span className="sidebar-nav-text">Dashboard</span>
+          </NavLink>
+          <NavLink
+            to="/observability"
+            className={linkClass}
+            end={false}
+            title={collapsed ? "Observabilidad" : undefined}
+            onClick={() => setMobileOpen(false)}
+          >
+            <IconBarChart className="sidebar-nav-icon" />
+            <span className="sidebar-nav-text">Observabilidad</span>
           </NavLink>
 
           {member?.role === "admin" && (
