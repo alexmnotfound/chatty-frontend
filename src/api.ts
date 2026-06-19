@@ -1,7 +1,7 @@
 const BASE = "/api";
 
 export function emitInboxUnreadChanged(total?: number) {
-  window.dispatchEvent(new CustomEvent("chatty:inbox-unread-changed", { detail: { total } }));
+  window.dispatchEvent(new CustomEvent("hermes:inbox-unread-changed", { detail: { total } }));
 }
 
 function getToken(): string | null {

@@ -37,7 +37,7 @@ export default function SuperLogin() {
         <ThemeToggle />
       </div>
       <div className="login-brand">
-        <h1>Chatty</h1>
+        <h1>Hermes IA</h1>
         <p>Panel de administración de plataforma</p>
       </div>
       <form onSubmit={handleSubmit} className="card login-card">

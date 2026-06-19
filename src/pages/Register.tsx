@@ -90,15 +90,15 @@ export default function Register() {
   return (
     <div className="login-page">
       <div className="login-theme-bar">
-        <Link to="/" className="login-topbar-logo">Chatty</Link>
+        <Link to="/" className="login-topbar-logo">Hermes IA</Link>
         <ThemeToggle />
       </div>
       <div className="login-brand">
-        <h1>Chatty</h1>
+        <h1>Hermes IA</h1>
         <p>Inbox y tareas con WhatsApp</p>
       </div>
       <form onSubmit={handleSubmit} className="card login-card">
-        <h2 style={{ marginBottom: '0.25rem', fontSize: '1.1rem' }}>Registrate en Chatty</h2>
+        <h2 style={{ marginBottom: '0.25rem', fontSize: '1.1rem' }}>Registrate en Hermes IA</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.85rem' }}>
           Tu cuenta quedará pendiente de activación.
         </p>

@@ -19,7 +19,7 @@ import {
   IconBarChart,
 } from "./components/SidebarIcons";
 
-const SIDEBAR_COLLAPSED_KEY = "chatty-sidebar-collapsed";
+const SIDEBAR_COLLAPSED_KEY = "hermes-sidebar-collapsed";
 
 function initialsFromName(name: string | undefined) {
   if (!name?.trim()) return "?";
@@ -81,13 +81,13 @@ export default function Layout() {
       if (document.visibilityState === "visible") void refreshUnread();
     };
 
-    window.addEventListener("chatty:inbox-unread-changed", onUnreadChanged);
+    window.addEventListener("hermes:inbox-unread-changed", onUnreadChanged);
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibility);
     const timer = window.setInterval(() => void refreshUnread(), 5000);
     return () => {
       cancelled = true;
-      window.removeEventListener("chatty:inbox-unread-changed", onUnreadChanged);
+      window.removeEventListener("hermes:inbox-unread-changed", onUnreadChanged);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
       window.clearInterval(timer);
@@ -109,7 +109,7 @@ export default function Layout() {
       {mobileOpen && <div className="sidebar-backdrop" onClick={() => setMobileOpen(false)} />}
       <aside className={`app-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label="Navegación principal">
         <div className="sidebar-header">
-          <span className="sidebar-brand">Chatty</span>
+          <span className="sidebar-brand">Hermes IA</span>
           <button
             type="button"
             className="sidebar-collapse-btn"

@@ -87,7 +87,7 @@ export default function Settings() {
               accent
               eyebrow="Cuenta"
               title="Datos de tu usuario"
-              description="Esta información está vinculada a tu sesión en Chatty."
+              description="Esta información está vinculada a tu sesión en Hermes IA."
             >
               <div className="account-strip">
                 <div className="account-stat">

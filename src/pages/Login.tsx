@@ -60,11 +60,11 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-theme-bar">
-        <Link to="/" className="login-topbar-logo">Chatty</Link>
+        <Link to="/" className="login-topbar-logo">Hermes IA</Link>
         <ThemeToggle />
       </div>
       <div className="login-brand">
-        <h1>Chatty</h1>
+        <h1>Hermes IA</h1>
         <p>Inbox y tareas con WhatsApp</p>
       </div>
       <form onSubmit={submit} className="card login-card">

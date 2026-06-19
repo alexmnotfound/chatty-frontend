@@ -9,7 +9,7 @@ export default function Landing() {
   return (
     <div className="landing">
       <header className="landing-header">
-        <Link to="/" className="landing-logo">Chatty</Link>
+        <Link to="/" className="landing-logo">Hermes IA</Link>
 <div className="landing-header-actions">
           <ThemeToggle />
           {member ? (
@@ -36,22 +36,12 @@ export default function Landing() {
             subheading="WhatsApp + IA para tu equipo"
             heading={"Un solo número.\nToda la conversación bajo control."}
           >
-            <div className="parallax-hero-ctas">
-              {member ? (
-                <Link to="/inbox" className="btn btn-primary landing-cta-large">
-                  Abrir inbox
-                </Link>
-              ) : (
-                <>
-                  <Link to="/register" className="btn btn-primary landing-cta-large">
-                    Empezar gratis
-                  </Link>
-                  <Link to="/login" className="btn btn-ghost landing-cta-secondary">
-                    Ya tengo cuenta
-                  </Link>
-                </>
-              )}
-            </div>
+            <ParallaxSectionContent
+              title="Inbox compartido para todo el equipo"
+              body="Todas las conversaciones de WhatsApp en un solo lugar. Tu equipo ve quién atiende cada chat, si está la IA o un humano, y puede tomar el relevo en cualquier momento sin perder el historial."
+              ctaLabel="Empezar gratis"
+              ctaTo="/register"
+            />
           </TextParallaxContent>
 
           <TextParallaxContent
@@ -97,7 +87,7 @@ export default function Landing() {
       <footer className="landing-footer">
         <div className="landing-footer-grid">
           <div className="landing-footer-brand">
-            <Link to="/" className="landing-logo">Chatty</Link>
+            <Link to="/" className="landing-logo">Hermes IA</Link>
             <p>Inbox de WhatsApp con IA para equipos que no pueden perder una consulta.</p>
           </div>
           <div className="landing-footer-col">
@@ -117,7 +107,7 @@ export default function Landing() {
           </div>
         </div>
         <div className="landing-footer-bottom">
-          <span>© {new Date().getFullYear()} Chatty. Todos los derechos reservados.</span>
+          <span>© {new Date().getFullYear()} Hermes IA. Todos los derechos reservados.</span>
           <span>Hecho con WhatsApp Cloud API</span>
         </div>
       </footer>

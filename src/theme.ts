@@ -1,4 +1,4 @@
-const STORAGE_KEY = "chatty-theme";
+const STORAGE_KEY = "hermes-theme";
 
 export type Theme = "light" | "dark";
 

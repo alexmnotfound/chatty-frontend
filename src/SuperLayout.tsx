@@ -9,7 +9,7 @@ import {
   IconLogOut,
 } from "./components/SidebarIcons";
 
-const SIDEBAR_COLLAPSED_KEY = "chatty-super-sidebar-collapsed";
+const SIDEBAR_COLLAPSED_KEY = "hermes-super-sidebar-collapsed";
 
 function IconBuilding({ className }: { className?: string }) {
   return (
@@ -68,7 +68,7 @@ export default function SuperLayout() {
       <aside className={`app-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label="Navegacion super admin">
         <div className="sidebar-header">
           <span className="sidebar-brand">
-            Chatty
+            Hermes IA
             <span style={{ display: "block", fontSize: "0.65rem", fontWeight: 500, opacity: 0.6, letterSpacing: "0.04em" }}>
               Super Admin
             </span>

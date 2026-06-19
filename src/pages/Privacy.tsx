@@ -12,7 +12,7 @@ export default function Privacy() {
       <p className="legal-date">Última actualización: junio de 2026</p>
 
       <p>
-        Esta política describe cómo Chatty recopila, usa y protege la información de sus usuarios.
+        Esta política describe cómo Hermes IA recopila, usa y protege la información de sus usuarios.
       </p>
 
       <h2>1. Información que recopilamos</h2>
@@ -58,7 +58,7 @@ export default function Privacy() {
         <li>Portabilidad de tus datos en formato JSON.</li>
       </ul>
       <p>
-        Enviá tu solicitud a <a href="mailto:privacidad@chatty.app" style={{ color: "var(--accent)" }}>privacidad@chatty.app</a>.
+        Enviá tu solicitud a <a href="mailto:privacidad@hermesia.app" style={{ color: "var(--accent)" }}>privacidad@hermesia.app</a>.
       </p>
 
       <h2>7. Cookies</h2>
