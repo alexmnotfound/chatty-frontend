@@ -1519,6 +1519,10 @@ input.select {
   flex: 1;
 }
 
+.landing main section {
+  scroll-margin-top: 4.5rem;
+}
+
 .landing-hero {
   max-width: 720px;
   margin: 0 auto;
@@ -1680,19 +1684,122 @@ input.select {
 }
 
 .landing-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
   border-top: 1px solid var(--border-subtle);
-  font-size: 0.8125rem;
+  padding: 3rem 1.5rem 2rem;
+  background: var(--bg);
+}
+
+.landing-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto 2.5rem;
+}
+
+.landing-footer-brand p {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 22ch;
+}
+
+.landing-footer-col h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--muted);
 }
 
-.landing-footer a {
+.landing-footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.landing-footer-col a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.landing-footer-col a:hover {
+  color: var(--text);
+}
+
+.landing-footer-bottom {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.8rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Legal pages */
+.legal-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem 4rem;
+}
+
+.legal-page h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.5rem;
+}
+
+.legal-page .legal-date {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 2.5rem;
+}
+
+.legal-page h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 2rem 0 0.5rem;
+}
+
+.legal-page p, .legal-page li {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin: 0 0 0.75rem;
+}
+
+.legal-page ul {
+  padding-left: 1.25rem;
+}
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
   font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  transition: color 0.15s ease;
+}
+
+.legal-back:hover {
+  color: var(--text);
 }
 
 .login-page {
@@ -1746,6 +1853,118 @@ input.select {
 .login-card {
   width: 100%;
   max-width: 380px;
+}
+
+/* ── Text Parallax Content ─────────────────────────────────────────── */
+.parallax-block {
+  position: relative;
+  height: 150vh;
+}
+
+.parallax-sticky-img {
+  position: sticky;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  background-size: cover;
+  background-position: center;
+}
+
+.parallax-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.parallax-overlay-copy {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.parallax-subheading {
+  margin: 0 0 0.5rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--wa-green);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.parallax-heading {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.parallax-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+
+@media (min-width: 768px) {
+  .parallax-content {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+.parallax-content-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.parallax-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.parallax-content-body p {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.parallax-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+.parallax-cta:hover {
+  opacity: 0.85;
+}
+
+.parallax-cta-icon {
+  flex-shrink: 0;
 }
 
 /* ── UI Component Library ──────────────────────────────────────────── */
