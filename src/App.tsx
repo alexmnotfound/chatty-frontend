@@ -22,6 +22,7 @@ import BotBuilder from "./pages/BotBuilder";
 import Comprobantes from "./pages/Comprobantes";
 import Observability from "./pages/Observability";
 import SuperLogin from "./pages/SuperLogin";
+import SuperDashboard from "./pages/SuperDashboard";
 import SuperCompanies from "./pages/SuperCompanies";
 import SuperCompanyDetail from "./pages/SuperCompanyDetail";
 import SuperUsers from "./pages/SuperUsers";
@@ -67,7 +68,7 @@ export default function App() {
       </Route>
       <Route path="/super/login" element={<SuperAuthProvider><SuperLogin /></SuperAuthProvider>} />
       <Route element={<SuperAuthProvider><SuperProtected><SuperLayout /></SuperProtected></SuperAuthProvider>}>
-        <Route path="/super" element={<Navigate to="/super/companies" replace />} />
+        <Route path="/super" element={<SuperDashboard />} />
         <Route path="/super/companies" element={<SuperCompanies />} />
         <Route path="/super/companies/:id" element={<SuperCompanyDetail />} />
         <Route path="/super/users" element={<SuperUsers />} />
