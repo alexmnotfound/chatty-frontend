@@ -78,7 +78,11 @@ const OverlayCopy = ({
       style={{ y, opacity }}
     >
       <p className="parallax-subheading">{subheading}</p>
-      <p className="parallax-heading">{heading}</p>
+      <p className="parallax-heading">
+        {heading.split('\n').map((line, i, arr) => (
+          <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+        ))}
+      </p>
     </motion.div>
   );
 };

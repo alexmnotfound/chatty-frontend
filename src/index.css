@@ -1967,6 +1967,15 @@ input.select {
   flex-shrink: 0;
 }
 
+.parallax-hero-ctas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 3rem 1.5rem 4rem;
+}
+
 /* ── UI Component Library ──────────────────────────────────────────── */
 
 /* Button spinner */

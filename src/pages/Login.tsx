@@ -45,7 +45,11 @@ export default function Login() {
       await login(email, password);
       navigate("/inbox", { replace: true });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error";
+      const code = err instanceof Error ? err.message : "";
+      const msg =
+        code === "no_member"
+          ? "Tu usuario no tiene una empresa asociada. Contactá a un administrador."
+          : "Email o contraseña incorrectos.";
       setError(msg);
       toast(msg, "error");
     } finally {

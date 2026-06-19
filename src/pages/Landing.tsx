@@ -30,47 +30,28 @@ export default function Landing() {
       </header>
 
       <main>
-        <section className="landing-hero">
-          <p className="landing-eyebrow">WhatsApp + IA para tu equipo</p>
-          <h1 className="landing-title">
-            Un solo número.
-            <br />
-            <span className="landing-title-accent">Toda la conversación bajo control.</span>
-          </h1>
-          <p className="landing-lead">
-            Recepcionista y vendedor con IA, inbox compartido y tareas que nacen del chat. Tu equipo puede tomar el
-            relevo cuando haga falta.
-          </p>
-          <div className="landing-hero-ctas">
-            {member ? (
-              <Link to="/inbox" className="btn btn-primary landing-cta-large">
-                Abrir inbox
-              </Link>
-            ) : (
-              <>
-                <Link to="/register" className="btn btn-primary landing-cta-large">
-                  Empezar gratis
-                </Link>
-                <Link to="/login" className="btn btn-ghost landing-cta-secondary">
-                  Ya tengo cuenta
-                </Link>
-              </>
-            )}
-          </div>
-        </section>
-
         <section id="features">
           <TextParallaxContent
             imgUrl="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop"
-            subheading="Inbox compartido"
-            heading="Un número, todo el equipo."
+            subheading="WhatsApp + IA para tu equipo"
+            heading={"Un solo número.\nToda la conversación bajo control."}
           >
-            <ParallaxSectionContent
-              title="Visibilidad total en tiempo real"
-              body="Todas las conversaciones de WhatsApp en un solo lugar. Tu equipo ve quién atiende cada chat, si está a cargo la IA o un humano, y puede tomar el relevo en cualquier momento sin perder el historial."
-              ctaLabel="Empezar ahora"
-              ctaTo="/register"
-            />
+            <div className="parallax-hero-ctas">
+              {member ? (
+                <Link to="/inbox" className="btn btn-primary landing-cta-large">
+                  Abrir inbox
+                </Link>
+              ) : (
+                <>
+                  <Link to="/register" className="btn btn-primary landing-cta-large">
+                    Empezar gratis
+                  </Link>
+                  <Link to="/login" className="btn btn-ghost landing-cta-secondary">
+                    Ya tengo cuenta
+                  </Link>
+                </>
+              )}
+            </div>
           </TextParallaxContent>
 
           <TextParallaxContent

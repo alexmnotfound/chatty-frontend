@@ -21,8 +21,8 @@ export default function SuperLogin() {
     try {
       await login(email, password);
       navigate("/super");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error al iniciar sesión";
+    } catch {
+      const msg = "Email o contraseña incorrectos.";
       setError(msg);
       toast(msg, "error");
     } finally {
@@ -41,6 +41,7 @@ export default function SuperLogin() {
         <p>Panel de administración de plataforma</p>
       </div>
       <form onSubmit={handleSubmit} className="card login-card">
+        <h2 style={{ marginBottom: "1rem", fontSize: "1.1rem" }}>Acceso de administrador</h2>
         <FormGroup label="Email">
           {(props) => (
             <input
@@ -50,6 +51,7 @@ export default function SuperLogin() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              autoFocus
             />
           )}
         </FormGroup>
@@ -66,7 +68,7 @@ export default function SuperLogin() {
           )}
         </FormGroup>
         {error && (
-          <p style={{ color: "var(--danger)", background: "var(--danger-bg)", padding: "0.5rem 0.65rem", borderRadius: "var(--radius-md)", fontSize: "0.85rem", marginBottom: "0.65rem" }}>
+          <p aria-live="polite" className="login-error" style={{ color: "var(--danger)", background: "var(--danger-bg)", padding: "0.5rem 0.65rem", borderRadius: "var(--radius-md)", fontSize: "0.85rem", marginBottom: "0.65rem" }}>
             {error}
           </p>
         )}
