@@ -446,6 +446,45 @@ export type SuperCompanyBot = {
   whatsappPhoneNumberId: string | null;
 };
 
+export type SuperDashboard = {
+  companiesActive: number;
+  usersTotal: number;
+  conversationsToday: number;
+  messagesToday: number;
+  recentCompanies: { id: string; name: string; slug: string; active: boolean; createdAt: string }[];
+  recentActivity: { id: string; company: string; companyId: string; contact: string; createdAt: string }[];
+  topPlugins: { id: string; name: string; icon: string | null; count: number }[];
+};
+
+export type Plugin = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  icon: string | null;
+  price_usd: number;
+  active: boolean;
+  createdAt: string;
+  companiesCount: number;
+};
+
+export type CompanyPlugin = {
+  id: string;
+  pluginId: string;
+  name: string;
+  icon: string | null;
+  price_usd: number;
+  assignedAt: string;
+  assignedBy: string | null;
+};
+
+export type CompanyBilling = {
+  plan: "free" | "starter" | "pro" | "custom";
+  internal_notes: string;
+  monthlyTotal: number;
+  plugins: { id: string; pluginId: string; name: string; icon: string | null; price_usd: number; assignedAt: string }[];
+};
+
 export const superAdmin = {
   login: (email: string, password: string) =>
     superApi<{ token: string; admin: SuperAdmin }>("/auth/login", {
@@ -453,10 +492,21 @@ export const superAdmin = {
       body: JSON.stringify({ email, password }),
     }),
   me: () => superApi<{ admin: SuperAdmin }>("/auth/me"),
+
+  dashboard: {
+    get: () => superApi<SuperDashboard>("/dashboard"),
+  },
+
   companies: {
     list: () => superApi<CompanySummary[]>("/companies"),
     get: (id: string) => superApi<CompanyDetail>(`/companies/${id}`),
     getTeam: (id: string) => superApi<SuperCompanyTeamMember[]>(`/companies/${id}/team`),
+    addMember: (id: string, data: { email: string; name: string; password?: string; role: "admin" | "agent" }) =>
+      superApi<SuperCompanyTeamMember>(`/companies/${id}/team`, { method: "POST", body: JSON.stringify(data) }),
+    updateMember: (id: string, memberId: string, data: { role?: "admin" | "agent"; enabled?: boolean }) =>
+      superApi<SuperCompanyTeamMember>(`/companies/${id}/team/${memberId}`, { method: "PATCH", body: JSON.stringify(data) }),
+    removeMember: (id: string, memberId: string) =>
+      superApi<void>(`/companies/${id}/team/${memberId}`, { method: "DELETE" }),
     create: (data: { name: string; slug: string; adminEmail: string; adminPassword: string; adminName: string }) =>
       superApi<{ id: string; name: string; slug: string }>("/companies", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: Partial<{ name: string; active: boolean }>) =>
@@ -464,13 +514,38 @@ export const superAdmin = {
     getBots: (id: string) => superApi<SuperCompanyBot[]>(`/companies/${id}/bots`),
     toggleBotActive: (companyId: string, botId: string, active: boolean) =>
       superApi<{ ok: boolean }>(`/companies/${companyId}/bots/${botId}/active`, {
-        method: "PATCH",
-        body: JSON.stringify({ active }),
+        method: "PATCH", body: JSON.stringify({ active }),
+      }),
+    getPlugins: (id: string) => superApi<CompanyPlugin[]>(`/companies/${id}/plugins`),
+    assignPlugin: (id: string, pluginId: string, assignedBy?: string) =>
+      superApi<CompanyPlugin>(`/companies/${id}/plugins`, {
+        method: "POST", body: JSON.stringify({ pluginId, assignedBy }),
+      }),
+    revokePlugin: (id: string, companyPluginId: string) =>
+      superApi<void>(`/companies/${id}/plugins/${companyPluginId}`, { method: "DELETE" }),
+    getBilling: (id: string) => superApi<CompanyBilling>(`/companies/${id}/billing`),
+    updateBilling: (id: string, data: { plan?: string; internal_notes?: string }) =>
+      superApi<{ id: string; plan: string; internal_notes: string }>(`/companies/${id}/billing`, {
+        method: "PATCH", body: JSON.stringify(data),
       }),
   },
+
   users: {
     list: () => superApi<SuperUser[]>("/users"),
+    create: (data: { email: string; name: string; password: string; companyId: string; role: "admin" | "agent" }) =>
+      superApi<SuperUser>("/users", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: Partial<{ role: string; enabled: boolean }>) =>
       superApi<SuperUser>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    generateRecovery: (id: string) =>
+      superApi<{ link: string }>(`/users/${id}/recovery`, { method: "POST" }),
+  },
+
+  plugins: {
+    list: () => superApi<Plugin[]>("/plugins"),
+    create: (data: { name: string; slug: string; description?: string; icon?: string; price_usd: number; active?: boolean }) =>
+      superApi<Plugin>("/plugins", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<{ name: string; slug: string; description: string; icon: string; price_usd: number; active: boolean }>) =>
+      superApi<Plugin>(`/plugins/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    delete: (id: string) => superApi<void>(`/plugins/${id}`, { method: "DELETE" }),
   },
 };
