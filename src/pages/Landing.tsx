@@ -9,7 +9,10 @@ export default function Landing() {
   return (
     <div className="landing">
       <header className="landing-header">
-        <span className="landing-logo">Chatty</span>
+        <Link to="/" className="landing-logo">Chatty</Link>
+        <nav className="landing-nav">
+          <a href="#features" className="landing-nav-link">Funciones</a>
+        </nav>
         <div className="landing-header-actions">
           <ThemeToggle />
           {member ? (
@@ -21,7 +24,7 @@ export default function Landing() {
               <Link to="/login" className="landing-link">
                 Iniciar sesión
               </Link>
-              <Link to="/login" className="btn btn-primary landing-header-cta">
+              <Link to="/register" className="btn btn-primary landing-header-cta">
                 Crear cuenta
               </Link>
             </>
@@ -59,7 +62,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="landing-features" aria-labelledby="features-heading">
+        <section id="features" className="landing-features" aria-labelledby="features-heading">
           <h2 id="features-heading" className="landing-section-title">
             Pensado para operaciones reales
           </h2>

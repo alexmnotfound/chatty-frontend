@@ -56,9 +56,7 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-theme-bar">
-        <Link to="/" className="login-back">
-          Inicio
-        </Link>
+        <Link to="/" className="login-topbar-logo">Chatty</Link>
         <ThemeToggle />
       </div>
       <div className="login-brand">
@@ -66,6 +64,7 @@ export default function Login() {
         <p>Inbox y tareas con WhatsApp</p>
       </div>
       <form onSubmit={submit} className="card login-card">
+        <h2 style={{ marginBottom: "1rem", fontSize: "1.1rem" }}>Bienvenido de nuevo</h2>
         <FormGroup label="Email" error={errors.email}>
           {(props) => (
             <input
@@ -76,6 +75,7 @@ export default function Login() {
               onBlur={() => { const err = validateEmail(email); if (err) setErrors((prev) => ({ ...prev, email: err })); }}
               required
               autoComplete="email"
+              autoFocus
             />
           )}
         </FormGroup>
@@ -93,7 +93,7 @@ export default function Login() {
           )}
         </FormGroup>
         {error && (
-          <p className="login-error" style={{ color: "var(--danger)", background: "var(--danger-bg)", padding: "0.5rem 0.65rem", borderRadius: "var(--radius-md)", fontSize: "0.85rem", marginBottom: "0.65rem" }}>
+          <p className="login-error" aria-live="polite" style={{ color: "var(--danger)", background: "var(--danger-bg)", padding: "0.5rem 0.65rem", borderRadius: "var(--radius-md)", fontSize: "0.85rem", marginBottom: "0.65rem" }}>
             {error}
           </p>
         )}
@@ -103,7 +103,7 @@ export default function Login() {
         <p style={{ textAlign: "center", fontSize: "0.9rem", color: "var(--text-secondary)", marginTop: "0.5rem" }}>
           ¿No tenés cuenta?{" "}
           <Link to="/register" style={{ color: "var(--accent)" }}>
-            Crear cuenta
+            Registrate
           </Link>
         </p>
       </form>
