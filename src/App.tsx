@@ -24,6 +24,7 @@ import Observability from "./pages/Observability";
 import SuperLogin from "./pages/SuperLogin";
 import SuperCompanies from "./pages/SuperCompanies";
 import SuperCompanyDetail from "./pages/SuperCompanyDetail";
+import SuperUsers from "./pages/SuperUsers";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { member } = useAuth();
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="/super" element={<Navigate to="/super/companies" replace />} />
         <Route path="/super/companies" element={<SuperCompanies />} />
         <Route path="/super/companies/:id" element={<SuperCompanyDetail />} />
+        <Route path="/super/users" element={<SuperUsers />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

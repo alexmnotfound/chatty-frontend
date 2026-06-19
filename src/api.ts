@@ -425,6 +425,18 @@ export type SuperCompanyTeamMember = {
   enabled: boolean;
 };
 
+export type SuperUser = {
+  id: string;
+  user_id: string;
+  company_id: string;
+  email: string | null;
+  name: string | null;
+  role: string;
+  enabled: boolean;
+  created_at: string;
+  companies: { id: string; name: string; slug: string } | null;
+};
+
 export type SuperCompanyBot = {
   id: string;
   name: string;
@@ -455,5 +467,10 @@ export const superAdmin = {
         method: "PATCH",
         body: JSON.stringify({ active }),
       }),
+  },
+  users: {
+    list: () => superApi<SuperUser[]>("/users"),
+    update: (id: string, data: Partial<{ role: string; enabled: boolean }>) =>
+      superApi<SuperUser>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   },
 };
