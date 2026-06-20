@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { superAdmin, type SuperUser } from "../api";
 import { PageHeader, SurfaceCard, Button, FormGroup, Skeleton } from "../components/ui";
 import { useToast } from "../components/ui/Toast";
@@ -15,6 +15,7 @@ export default function SuperUsers() {
   const [createForm, setCreateForm] = useState<CreateForm>(emptyCreateForm);
   const [creating, setCreating] = useState(false);
   const [recoveryLink, setRecoveryLink] = useState<string | null>(null);
+  const [recovering, setRecovering] = useState<string | null>(null);
 
   const load = useCallback(() => {
     superAdmin.users.list()
@@ -47,23 +48,30 @@ export default function SuperUsers() {
     try {
       await superAdmin.users.create(createForm);
       toast("Usuario creado", "success");
-      setShowCreate(false); setCreateForm(emptyCreateForm); load();
+      setShowCreate(false); setCreateForm(emptyCreateForm); setLoading(true); load();
     } catch (err) { toast(err instanceof Error ? err.message : "Error al crear usuario", "error"); }
     finally { setCreating(false); }
   };
 
   const handleRecovery = async (userId: string) => {
+    if (recovering === userId) return;
+    if (recoveryLink !== null) {
+      if (!window.confirm("¿Generar un nuevo link? El anterior quedará inválido.")) return;
+    }
+    setRecovering(userId);
     try {
       const { link } = await superAdmin.users.generateRecovery(userId);
       setRecoveryLink(link);
     } catch { toast("Error al generar link de recuperación", "error"); }
+    finally { setRecovering(null); }
   };
 
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" });
 
-  const companies = Array.from(
-    new Map(users.filter(u => (u as any).companies).map(u => [(u as any).companies.id, (u as any).companies])).values()
+  const companies = useMemo(() =>
+    Array.from(new Map(users.filter(u => u.companies).map(u => [u.companies!.id, u.companies!])).values()),
+    [users]
   );
 
   return (
@@ -71,7 +79,7 @@ export default function SuperUsers() {
       <PageHeader title="Usuarios" subtitle="Todos los usuarios de la plataforma." />
       <div className="page-body">
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
-          <Button size="sm" onClick={() => setShowCreate(true)}><Plus size={14} /> Nuevo usuario</Button>
+          <Button size="sm" disabled={loading} onClick={() => setShowCreate(true)}><Plus size={14} /> Nuevo usuario</Button>
         </div>
 
         {showCreate && (
@@ -153,7 +161,14 @@ export default function SuperUsers() {
             <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "0.5rem" }}>Compartí este link con el usuario. Expira en 24h.</p>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <input className="form-input" value={recoveryLink} readOnly style={{ flex: 1, fontFamily: "monospace", fontSize: "0.8rem" }} />
-              <Button size="sm" onClick={() => { navigator.clipboard.writeText(recoveryLink); toast("Copiado", "success"); }}>
+              <Button size="sm" onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(recoveryLink);
+                  toast("Copiado", "success");
+                } catch {
+                  toast("No se pudo copiar al portapapeles", "error");
+                }
+              }}>
                 <Copy size={14} />
               </Button>
             </div>
@@ -202,10 +217,10 @@ export default function SuperUsers() {
                       <td className="cell-muted">{fmtDate(u.created_at)}</td>
                       <td>
                         <div style={{ display: "flex", gap: "0.25rem" }}>
-                          <button onClick={() => toggle(u)} style={{ fontSize: "0.8rem", background: "none", border: "1px solid var(--border-subtle)", borderRadius: "4px", padding: "0.2rem 0.5rem", cursor: "pointer", whiteSpace: "nowrap" }}>
+                          <button onClick={() => toggle(u)} style={{ fontSize: "0.8rem", background: "none", border: `1px solid ${u.enabled ? "var(--danger, #ef4444)" : "var(--border-subtle)"}`, color: u.enabled ? "var(--danger, #ef4444)" : "inherit", borderRadius: "4px", padding: "0.2rem 0.5rem", cursor: "pointer", whiteSpace: "nowrap" }}>
                             {u.enabled ? "Deshabilitar" : "Habilitar"}
                           </button>
-                          <button onClick={() => handleRecovery(u.id)} style={{ fontSize: "0.8rem", background: "none", border: "1px solid var(--border-subtle)", borderRadius: "4px", padding: "0.2rem 0.5rem", cursor: "pointer", whiteSpace: "nowrap" }}>
+                          <button onClick={() => handleRecovery(u.id)} disabled={recovering === u.id} style={{ fontSize: "0.8rem", background: "none", border: "1px solid var(--border-subtle)", borderRadius: "4px", padding: "0.2rem 0.5rem", cursor: recovering === u.id ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
                             Reset
                           </button>
                         </div>
