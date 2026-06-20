@@ -374,20 +374,13 @@ export const bots = {
 
 // --- Super Admin API ---
 
-function getSuperToken(): string | null {
-  return localStorage.getItem("superToken");
-}
-
 async function superApi<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getSuperToken();
   const headers: HeadersInit = {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
-  const res = await fetch("/api/super" + path, { ...options, headers });
+  const res = await fetch("/api/super" + path, { ...options, headers, credentials: "include" });
   if (res.status === 401) {
-    localStorage.removeItem("superToken");
     window.location.href = "/super/login";
     throw new Error("No autorizado");
   }
@@ -489,11 +482,12 @@ export type CompanyBilling = {
 
 export const superAdmin = {
   login: (email: string, password: string) =>
-    superApi<{ token: string; admin: SuperAdmin }>("/auth/login", {
+    superApi<{ admin: SuperAdmin }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
   me: () => superApi<{ admin: SuperAdmin }>("/auth/me"),
+  logout: () => superApi<void>("/auth/logout", { method: "POST" }),
 
   dashboard: {
     get: () => superApi<SuperDashboard>("/dashboard"),

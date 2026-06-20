@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { SuperAuthProvider, useSuperAuth } from "./SuperAuthContext";
@@ -21,12 +22,13 @@ import SheetsConfig from "./pages/SheetsConfig";
 import BotBuilder from "./pages/BotBuilder";
 import Comprobantes from "./pages/Comprobantes";
 import Observability from "./pages/Observability";
-import SuperLogin from "./pages/SuperLogin";
-import SuperDashboard from "./pages/SuperDashboard";
-import SuperCompanies from "./pages/SuperCompanies";
-import SuperCompanyDetail from "./pages/SuperCompanyDetail";
-import SuperUsers from "./pages/SuperUsers";
-import SuperPlugins from "./pages/SuperPlugins";
+
+const SuperLogin = lazy(() => import("./pages/SuperLogin"));
+const SuperDashboard = lazy(() => import("./pages/SuperDashboard"));
+const SuperCompanies = lazy(() => import("./pages/SuperCompanies"));
+const SuperCompanyDetail = lazy(() => import("./pages/SuperCompanyDetail"));
+const SuperUsers = lazy(() => import("./pages/SuperUsers"));
+const SuperPlugins = lazy(() => import("./pages/SuperPlugins"));
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { member, loading } = useAuth();
@@ -68,13 +70,13 @@ export default function App() {
         <Route path="/sheets-config" element={<SheetsConfig />} />
         <Route path="/observability" element={<Observability />} />
       </Route>
-      <Route path="/super/login" element={<SuperAuthProvider><SuperLogin /></SuperAuthProvider>} />
+      <Route path="/super/login" element={<SuperAuthProvider><Suspense fallback={null}><SuperLogin /></Suspense></SuperAuthProvider>} />
       <Route element={<SuperAuthProvider><SuperProtected><SuperLayout /></SuperProtected></SuperAuthProvider>}>
-        <Route path="/super" element={<SuperDashboard />} />
-        <Route path="/super/companies" element={<SuperCompanies />} />
-        <Route path="/super/companies/:id" element={<SuperCompanyDetail />} />
-        <Route path="/super/users" element={<SuperUsers />} />
-        <Route path="/super/plugins" element={<SuperPlugins />} />
+        <Route path="/super" element={<Suspense fallback={null}><SuperDashboard /></Suspense>} />
+        <Route path="/super/companies" element={<Suspense fallback={null}><SuperCompanies /></Suspense>} />
+        <Route path="/super/companies/:id" element={<Suspense fallback={null}><SuperCompanyDetail /></Suspense>} />
+        <Route path="/super/users" element={<Suspense fallback={null}><SuperUsers /></Suspense>} />
+        <Route path="/super/plugins" element={<Suspense fallback={null}><SuperPlugins /></Suspense>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

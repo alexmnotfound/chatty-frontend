@@ -5,7 +5,7 @@ type SuperAuthState = {
   admin: SuperAdmin | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const SuperAuthContext = createContext<SuperAuthState | null>(null);
@@ -15,22 +15,19 @@ export function SuperAuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("superToken");
-    if (!token) { setLoading(false); return; }
     superAdmin.me()
       .then((r) => setAdmin(r.admin))
-      .catch(() => localStorage.removeItem("superToken"))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
   const login = async (email: string, password: string) => {
     const res = await superAdmin.login(email, password);
-    localStorage.setItem("superToken", res.token);
     setAdmin(res.admin);
   };
 
-  const logout = () => {
-    localStorage.removeItem("superToken");
+  const logout = async () => {
+    await superAdmin.logout().catch(() => {});
     setAdmin(null);
   };
 
