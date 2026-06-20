@@ -29,7 +29,8 @@ import SuperUsers from "./pages/SuperUsers";
 import SuperPlugins from "./pages/SuperPlugins";
 
 function Protected({ children }: { children: React.ReactNode }) {
-  const { member } = useAuth();
+  const { member, loading } = useAuth();
+  if (loading) return null;
   if (!member) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

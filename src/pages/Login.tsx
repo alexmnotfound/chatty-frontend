@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import ThemeToggle from "../ThemeToggle";
@@ -11,9 +11,13 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { login } = useAuth();
+  const { login, member } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (member) navigate("/inbox", { replace: true });
+  }, [member]);
 
   const validateEmail = (val: string) => {
     if (!val) return "El email es obligatorio";
@@ -43,7 +47,6 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/inbox", { replace: true });
     } catch (err: unknown) {
       const code = err instanceof Error ? err.message : "";
       const msg =

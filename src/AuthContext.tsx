@@ -48,6 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
+      if (session?.access_token) {
+        localStorage.setItem('token', session.access_token);
+      } else {
+        localStorage.removeItem('token');
+      }
       if (event === 'INITIAL_SESSION') {
         await loadMemberForSession(session).then(setMember).catch(console.error);
         setLoading(false);
@@ -72,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function logout() {
     await supabase.auth.signOut();
+    localStorage.removeItem('token');
     setMember(null);
     setSession(null);
   }
