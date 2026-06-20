@@ -87,6 +87,19 @@ export default function SuperLayout() {
         <nav className="sidebar-nav" aria-label="Secciones">
           <p className="sidebar-section-label">Principal</p>
           <NavLink
+            to="/super"
+            className={linkClass}
+            end
+            title={collapsed ? "Dashboard" : undefined}
+            onClick={() => setMobileOpen(false)}
+          >
+            <svg className="sidebar-nav-icon" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+            </svg>
+            <span className="sidebar-nav-text">Dashboard</span>
+          </NavLink>
+          <NavLink
             to="/super/companies"
             className={linkClass}
             end={false}
@@ -110,6 +123,19 @@ export default function SuperLayout() {
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
             <span className="sidebar-nav-text">Usuarios</span>
+          </NavLink>
+          <NavLink
+            to="/super/plugins"
+            className={linkClass}
+            end={false}
+            title={collapsed ? "Plugins" : undefined}
+            onClick={() => setMobileOpen(false)}
+          >
+            <svg className="sidebar-nav-icon" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
+              <line x1="16" y1="8" x2="2" y2="22" /><line x1="17.5" y1="15" x2="9" y2="15" />
+            </svg>
+            <span className="sidebar-nav-text">Plugins</span>
           </NavLink>
         </nav>
 
