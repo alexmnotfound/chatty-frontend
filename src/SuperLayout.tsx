@@ -13,7 +13,7 @@ const SIDEBAR_COLLAPSED_KEY = "hermes-super-sidebar-collapsed";
 
 function IconBuilding({ className }: { className?: string }) {
   return (
-    <svg className={className} width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg className={className} width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
       <path d="M9 22v-4h6v4" />
       <path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01M8 14h.01M16 14h.01M12 14h.01" />
@@ -93,7 +93,7 @@ export default function SuperLayout() {
             title={collapsed ? "Dashboard" : undefined}
             onClick={() => setMobileOpen(false)}
           >
-            <svg className="sidebar-nav-icon" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg className="sidebar-nav-icon" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
               <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
             </svg>
@@ -116,7 +116,7 @@ export default function SuperLayout() {
             title={collapsed ? "Usuarios" : undefined}
             onClick={() => setMobileOpen(false)}
           >
-            <svg className="sidebar-nav-icon" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg className="sidebar-nav-icon" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -131,7 +131,7 @@ export default function SuperLayout() {
             title={collapsed ? "Plugins" : undefined}
             onClick={() => setMobileOpen(false)}
           >
-            <svg className="sidebar-nav-icon" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg className="sidebar-nav-icon" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
               <line x1="16" y1="8" x2="2" y2="22" /><line x1="17.5" y1="15" x2="9" y2="15" />
             </svg>
@@ -141,7 +141,7 @@ export default function SuperLayout() {
 
         <div className="sidebar-footer">
           <div className="sidebar-user-card">
-            <div className="sidebar-user-avatar" aria-hidden>
+            <div className="sidebar-user-avatar" aria-hidden="true">
               {initialsFromName(admin?.name)}
             </div>
             <div className="sidebar-user-meta">
