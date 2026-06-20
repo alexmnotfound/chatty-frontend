@@ -1,18 +1,21 @@
+import { supabase } from './lib/supabase';
+
 const BASE = "/api";
 
 export function emitInboxUnreadChanged(total?: number) {
   window.dispatchEvent(new CustomEvent("hermes:inbox-unread-changed", { detail: { total } }));
 }
 
-function getToken(): string | null {
-  return localStorage.getItem("token");
+async function getToken(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
 }
 
 export async function api<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = getToken();
+  const token = await getToken();
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -20,8 +23,7 @@ export async function api<T>(
   };
   const res = await fetch(BASE + path, { ...options, headers });
   if (res.status === 401) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("member");
+    await supabase.auth.signOut();
     window.location.href = "/login";
     throw new Error("No autorizado");
   }
@@ -238,7 +240,7 @@ export const aiRoles = {
   deleteExample: (id: string, exampleId: string) =>
     api<void>(`/ai-roles/${id}/examples/${exampleId}`, { method: "DELETE" }),
   uploadKnowledgeFile: async (id: string, file: File) => {
-    const token = getToken();
+    const token = await getToken();
     const fd = new FormData();
     fd.append("file", file);
     const res = await fetch(`${BASE}/ai-roles/${id}/knowledge-files`, {
