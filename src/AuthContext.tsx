@@ -51,9 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'INITIAL_SESSION') {
         await loadMemberForSession(session).then(setMember).catch(console.error);
         setLoading(false);
-      } else {
-        loadMemberForSession(session).then(setMember).catch(console.error);
+      } else if (event === 'SIGNED_OUT') {
+        // Supabase client fires this on signOut() — clear member state
+        setMember(null);
       }
+      // SIGNED_IN: handled by login() directly to avoid race where the
+      // Supabase client's session isn't fully propagated when this callback
+      // fires, causing loadMemberForSession to return null and wiping member.
+      // TOKEN_REFRESHED: session is still valid, member data hasn't changed.
     });
 
     return () => subscription.unsubscribe();
