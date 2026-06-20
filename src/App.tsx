@@ -26,6 +26,7 @@ import SuperDashboard from "./pages/SuperDashboard";
 import SuperCompanies from "./pages/SuperCompanies";
 import SuperCompanyDetail from "./pages/SuperCompanyDetail";
 import SuperUsers from "./pages/SuperUsers";
+import SuperPlugins from "./pages/SuperPlugins";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { member } = useAuth();
@@ -72,6 +73,7 @@ export default function App() {
         <Route path="/super/companies" element={<SuperCompanies />} />
         <Route path="/super/companies/:id" element={<SuperCompanyDetail />} />
         <Route path="/super/users" element={<SuperUsers />} />
+        <Route path="/super/plugins" element={<SuperPlugins />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
