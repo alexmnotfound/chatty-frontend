@@ -52,7 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await loadMemberForSession(session).then(setMember).catch(console.error);
         setLoading(false);
       } else if (event === 'SIGNED_OUT') {
-        // Supabase client fires this on signOut() — clear member state
         setMember(null);
       }
       // SIGNED_IN: handled by login() directly to avoid race where the
