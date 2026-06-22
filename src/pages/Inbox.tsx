@@ -65,13 +65,13 @@ export default function Inbox() {
 
   async function loadConversations() {
     const data = await conversations.list().catch(() => [] as Conversation[]);
-    const items: ConversationItem[] = data.map((c) => ({
+    const items: ConversationItem[] = (data as any[]).map((c) => ({
       id: c.id,
       status: c.status,
-      unread_count: c.unreadCount,
-      updated_at: c.updatedAt,
-      contact: c.contact ? { wa_id: c.contact.waId, name: c.contact.name } : null,
-      active_bot: null,
+      unread_count: c.unread_count,
+      updated_at: c.updated_at,
+      contact: c.contact ? { wa_id: c.contact.wa_id, name: c.contact.name } : null,
+      active_bot: c.active_bot ?? null,
     }));
     setList(items);
     emitInboxUnreadChanged(getUnreadTotal(items));
@@ -80,16 +80,14 @@ export default function Inbox() {
   async function loadMessages(convId: string) {
     const conv = await conversations.get(convId).catch(() => null);
     if (!conv) return;
-    const items: MessageItem[] = [...conv.messages]
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-      .map((m) => ({
-        id: m.id,
-        direction: m.direction,
-        body: m.body,
-        from_ai: m.fromAi,
-        created_at: m.createdAt,
-        bot: null,
-      }));
+    const items: MessageItem[] = ((conv as any).messages as any[]).map((m) => ({
+      id: m.id,
+      direction: m.direction,
+      body: m.body,
+      from_ai: m.from_ai,
+      created_at: m.created_at,
+      bot: m.bot ?? null,
+    }));
     setMessages(items);
   }
 
