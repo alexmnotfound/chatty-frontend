@@ -181,9 +181,10 @@ export default function Inbox() {
     try {
       await conversations.send(selected.id, reply.trim());
       setReply("");
-      // Messages will be pushed via Realtime; reload selected for metadata
       const updated = await conversations.get(selected.id);
       setSelected(updated);
+    } catch (err: any) {
+      toast(err?.message ?? "No se pudo enviar el mensaje", "error");
     } finally {
       setSending(false);
     }
