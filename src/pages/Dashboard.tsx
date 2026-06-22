@@ -1,7 +1,7 @@
+import { toast } from "../lib/toast";
 import { useEffect, useMemo, useState } from "react";
 import { metrics, audit, type ActivityLog, type DashboardMetrics } from "../api";
 import { SurfaceCard, Skeleton, PageHeader, Pagination } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 
 function truncate(s: string, maxLen: number) {
   if (s.length <= maxLen) return s;
@@ -43,7 +43,6 @@ export default function Dashboard() {
   const [logPage, setLogPage] = useState(1);
   const [logTotal, setLogTotal] = useState(0);
   const logPageSize = 25;
-  const { toast } = useToast();
 
   useEffect(() => {
     setError("");

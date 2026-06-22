@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { SuperAuthProvider, useSuperAuth } from "./SuperAuthContext";
-import { ToastProvider } from "./components/ui/Toast";
+import { Toaster } from "sileo";
 import Layout from "./Layout";
 import SuperLayout from "./SuperLayout";
 import Landing from "./pages/Landing";
@@ -46,7 +46,8 @@ function SuperProtected({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ToastProvider>
+    <>
+    <Toaster position="bottom-right" />
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
@@ -80,6 +81,6 @@ export default function App() {
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    </ToastProvider>
+    </>
   );
 }

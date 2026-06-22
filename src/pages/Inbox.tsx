@@ -1,10 +1,10 @@
+import { toast } from "../lib/toast";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Search } from "lucide-react";
 import { conversations, aiRoles, team, tasks, bots as botsApi, emitInboxUnreadChanged, type Conversation, type AiRole, type Bot } from "../api";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../AuthContext";
-import { useToast } from "../components/ui/Toast";
 
 // Supabase-shaped types for list and messages
 interface ConversationItem {
@@ -29,7 +29,6 @@ export default function Inbox() {
   const { conversationId } = useParams();
   const navigate = useNavigate();
   const { member } = useAuth();
-  const { toast } = useToast();
   const [list, setList] = useState<ConversationItem[]>([]);
   const [selected, setSelected] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<MessageItem[]>([]);

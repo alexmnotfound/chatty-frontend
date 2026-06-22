@@ -1,9 +1,9 @@
+import { toast } from "../lib/toast";
 import { useCallback, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { team, type MemberRole, type TeamMemberRow } from "../api";
 import { useAuth } from "../AuthContext";
 import { Button, FormGroup, SurfaceCard, Skeleton, PageHeader, ConfirmDialog } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 
 const roleLabel: Record<MemberRole, string> = {
   admin: "Administrador",
@@ -27,7 +27,6 @@ export default function Users() {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const { toast } = useToast();
 
   const validateNewName = (val: string) => {
     if (!val.trim()) return "El nombre es obligatorio";

@@ -1,13 +1,12 @@
+import { toast } from "../lib/toast";
 import { useEffect, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { bots, type Bot } from "../api";
 import { useAuth } from "../AuthContext";
-import { useToast } from "../components/ui/Toast";
 
 export default function Bots() {
   const { member } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [botList, setBotList] = useState<Bot[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -19,7 +18,7 @@ export default function Bots() {
       .then(setBotList)
       .catch(() => toast("No se pudieron cargar los bots", "error"))
       .finally(() => setLoading(false));
-  }, [toast]);
+  }, []);
 
   if (member?.role !== "admin") return <Navigate to="/inbox" replace />;
 

@@ -1,9 +1,9 @@
+import { toast } from "../lib/toast";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import ThemeToggle from "../ThemeToggle";
 import { Button, FormGroup } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,7 +13,6 @@ export default function Login() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { login, member } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (member) navigate("/inbox", { replace: true });

@@ -1,15 +1,14 @@
+import { toast } from "../lib/toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import ThemeToggle from "../ThemeToggle";
 import { useEffect, useState } from "react";
 import { settings, type AppSettings } from "../api";
 import { Button, FormGroup, PageHeader, SurfaceCard, Skeleton } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 
 export default function Settings() {
   const { member, logout } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [waModalOpen, setWaModalOpen] = useState(false);

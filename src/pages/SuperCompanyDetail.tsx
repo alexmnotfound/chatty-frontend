@@ -1,3 +1,4 @@
+import { toast } from "../lib/toast";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -6,7 +7,6 @@ import {
 } from "../api";
 import { Users, MessageSquare, Bot, ListChecks, Phone, Key, Check, X, ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { SurfaceCard, PageHeader, Button, FormGroup, Skeleton, ConfirmDialog } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 
 type Tab = "info" | "miembros" | "plugins" | "billing";
 
@@ -26,7 +26,6 @@ function CredentialChip({ label, configured, icon: Icon }: { label: string; conf
 export default function SuperCompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [tab, setTab] = useState<Tab>("info");
 
   const [detail, setDetail] = useState<CompanyDetail | null>(null);

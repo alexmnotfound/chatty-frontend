@@ -1,14 +1,13 @@
+import { toast } from "../lib/toast";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSuperAuth } from "../SuperAuthContext";
 import ThemeToggle from "../ThemeToggle";
 import { Button, FormGroup } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 
 export default function SuperLogin() {
   const { login } = useSuperAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

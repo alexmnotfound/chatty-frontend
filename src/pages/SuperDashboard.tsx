@@ -1,8 +1,8 @@
+import { toast } from "../lib/toast";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { superAdmin, type SuperDashboard } from "../api";
 import { PageHeader, SurfaceCard, Skeleton } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 import { Building2, Users, MessageSquare, Mail } from "lucide-react";
 
 function StatChip({ label, value, icon: Icon }: { label: string; value: number; icon: React.ElementType }) {
@@ -18,7 +18,6 @@ function StatChip({ label, value, icon: Icon }: { label: string; value: number; 
 }
 
 export default function SuperDashboard() {
-  const { toast } = useToast();
   const [data, setData] = useState<SuperDashboard | null>(null);
   const [loading, setLoading] = useState(true);
 

@@ -1,14 +1,13 @@
+import { toast } from "../lib/toast";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { superAdmin, type SuperUser } from "../api";
 import { PageHeader, SurfaceCard, Button, FormGroup, Skeleton } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 import { Plus, Copy } from "lucide-react";
 
 type CreateForm = { email: string; name: string; password: string; companyId: string; role: "admin" | "agent" };
 const emptyCreateForm: CreateForm = { email: "", name: "", password: "", companyId: "", role: "agent" };
 
 export default function SuperUsers() {
-  const { toast } = useToast();
   const [users, setUsers] = useState<SuperUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);

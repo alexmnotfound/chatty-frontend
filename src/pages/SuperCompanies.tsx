@@ -1,12 +1,11 @@
+import { toast } from "../lib/toast";
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { superAdmin, type CompanySummary } from "../api";
 import { Building2, ChevronRight, Plus } from "lucide-react";
 import { SurfaceCard, PageHeader, Button, FormGroup, Skeleton } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 
 export default function SuperCompanies() {
-  const { toast } = useToast();
   const [companies, setCompanies] = useState<CompanySummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);

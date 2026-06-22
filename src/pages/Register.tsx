@@ -1,9 +1,9 @@
+import { toast } from "../lib/toast";
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import ThemeToggle from '../ThemeToggle';
 import { Button, FormGroup } from '../components/ui';
-import { useToast } from '../components/ui/Toast';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -13,7 +13,6 @@ export default function Register() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const validateCompanyName = (val: string) => {
     if (!val.trim()) return 'El nombre de la empresa es obligatorio';

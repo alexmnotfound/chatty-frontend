@@ -1,7 +1,7 @@
+import { toast } from "../lib/toast";
 import { useState, useEffect, useCallback } from "react";
 import { superAdmin, type Plugin } from "../api";
 import { PageHeader, SurfaceCard, Button, FormGroup, Skeleton } from "../components/ui";
-import { useToast } from "../components/ui/Toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
 type PluginForm = { name: string; slug: string; description: string; icon: string; price_usd: string; active: boolean };
@@ -12,7 +12,6 @@ function slugify(s: string) {
 }
 
 export default function SuperPlugins() {
-  const { toast } = useToast();
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
