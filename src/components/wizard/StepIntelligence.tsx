@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { BotForm, bots } from "../../api";
 import { FormGroup } from "../ui";
 
@@ -70,7 +71,7 @@ export default function StepIntelligence({ data, onChange, availableProviders }:
         {availableProviders.length === 0 && (
           <p className="form-hint" style={{ color: 'var(--text-muted)' }}>
             Configurá al menos un proveedor de IA en{' '}
-            <a href="/settings">Ajustes</a> para continuar.
+            <Link to="/settings">Ajustes</Link> para continuar.
           </p>
         )}
       </div>
