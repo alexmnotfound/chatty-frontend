@@ -162,9 +162,9 @@ export default function Layout() {
           {member?.role === "admin" && (
             <>
               <p className="sidebar-section-label">IA</p>
-              <NavLink to="/bots" className={linkClass} title={collapsed ? "Reglas de bots" : undefined} onClick={() => setMobileOpen(false)}>
+              <NavLink to="/bots" className={linkClass} title={collapsed ? "Bots" : undefined} onClick={() => setMobileOpen(false)}>
                 <IconBot className="sidebar-nav-icon" />
-                <span className="sidebar-nav-text">Reglas de bots</span>
+                <span className="sidebar-nav-text">Bots</span>
               </NavLink>
               <NavLink to="/comprobantes" className={linkClass} title={collapsed ? "Comprobantes" : undefined} onClick={() => setMobileOpen(false)}>
                 <IconReceipt className="sidebar-nav-icon" />

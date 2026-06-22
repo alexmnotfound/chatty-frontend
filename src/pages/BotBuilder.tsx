@@ -2,18 +2,21 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { bots, BotForm, settings } from "../api";
 import SurfaceCard from "../components/ui/SurfaceCard";
+import StepTemplate from "../components/wizard/StepTemplate";
 import StepIdentity from "../components/wizard/StepIdentity";
 import StepWhatsApp from "../components/wizard/StepWhatsApp";
 import StepIntelligence from "../components/wizard/StepIntelligence";
 import StepPlugins from "../components/wizard/StepPlugins";
 
-const STEPS = ["Identidad", "WhatsApp", "Inteligencia", "Plugins"];
+const STEPS = ["Template", "Identidad", "WhatsApp", "Inteligencia", "Plugins"];
 const DEFAULT_FORM: Partial<BotForm> = {
   gender: "neutral",
   tone: "informal",
   examples: [],
   aiProvider: "openai",
   aiModel: "gpt-4o-mini",
+  templateType: undefined,
+  systemPrompt: "",
 };
 
 export default function BotBuilder() {
@@ -47,6 +50,7 @@ export default function BotBuilder() {
   }
 
   const stepComponents = [
+    <StepTemplate key="template" data={form} onChange={setForm} />,
     <StepIdentity key="identity" data={form} onChange={setForm} />,
     <StepWhatsApp key="whatsapp" data={form} onChange={setForm} />,
     <StepIntelligence key="intelligence" data={form} onChange={setForm} availableProviders={availableProviders} />,

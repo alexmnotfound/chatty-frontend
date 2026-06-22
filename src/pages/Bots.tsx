@@ -1,497 +1,165 @@
-import { useCallback, useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { aiRoles, type AiRole, type AiRoleExample } from "../api";
+import { useEffect, useState } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
+import { bots, type Bot } from "../api";
 import { useAuth } from "../AuthContext";
-import { FormGroup } from "../components/ui";
 import { useToast } from "../components/ui/Toast";
-import { StatStrip } from "../components/bot-rules/StatStrip";
-import { TabBar } from "../components/bot-rules/TabBar";
-import { ParametersSection } from "../components/bot-rules/ParametersSection";
-import { mockStats, mockRules } from "../components/bot-rules/mockData";
-import type { TabId, BotRules as BotRulesType } from "../components/bot-rules/types";
-import "../components/bot-rules/BotRules.css";
 
 export default function Bots() {
   const { member } = useAuth();
-  const [roles, setRoles] = useState<AiRole[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [botList, setBotList] = useState<Bot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingId, setSavingId] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    setError("");
-    return aiRoles
-      .list()
-      .then((list) => {
-        setRoles(list);
-        setActiveId((prev) => {
-          if (prev && list.some((r) => r.id === prev)) return prev;
-          return list[0]?.id ?? null;
-        });
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : "Error al cargar"));
-  }, []);
+  const [search, setSearch] = useState("");
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
-    load().finally(() => setLoading(false));
-  }, [load]);
+    bots
+      .list()
+      .then(setBotList)
+      .catch(() => toast("No se pudieron cargar los bots", "error"))
+      .finally(() => setLoading(false));
+  }, [toast]);
 
-  if (member?.role !== "admin") {
-    return <Navigate to="/inbox" replace />;
-  }
+  if (member?.role !== "admin") return <Navigate to="/inbox" replace />;
 
-  const save = async (id: string, name: string, systemPrompt: string) => {
-    setError("");
-    setSavingId(id);
+  const filtered = botList.filter((b) =>
+    b.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleToggleActive = async (
+    e: React.MouseEvent | React.ChangeEvent,
+    bot: Bot
+  ) => {
+    e.stopPropagation();
+    setTogglingId(bot.id);
     try {
-      const updated = await aiRoles.update(id, { name: name.trim(), systemPrompt: systemPrompt.trim() });
-      setRoles((prev) => prev.map((r) => (r.id === id ? updated : r)));
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al guardar");
+      await bots.toggleActive(bot.id, !bot.is_active);
+      setBotList((prev) =>
+        prev.map((b) => (b.id === bot.id ? { ...b, is_active: !b.is_active } : b))
+      );
+    } catch {
+      toast("No se pudo cambiar el estado del bot", "error");
     } finally {
-      setSavingId(null);
+      setTogglingId(null);
     }
   };
-
-  const activeRole = roles.find((r) => r.id === activeId) ?? roles[0] ?? null;
 
   return (
     <div className="panel" style={{ flex: 1, overflow: "auto", background: "var(--bg)" }}>
       <div className="panel-toolbar panel-toolbar--page">
-        <div className="panel-toolbar-text">
-          <strong>Reglas de bots</strong>
-          <p className="panel-toolbar-sub">
-            Definí la personalidad y límites de cada asistente. Solo aplica cuando la conversación está en modo IA.
-          </p>
-        </div>
-      </div>
-
-      <div className="page-body bots-page-body">
-        {error && <div className="page-alert">{error}</div>}
-
-        {loading ? (
-          <p className="page-empty">Cargando roles…</p>
-        ) : roles.length === 0 ? (
-          <p className="page-empty">No hay roles de IA configurados.</p>
-        ) : (
-          <>
-            <div className="bot-pills" role="tablist" aria-label="Elegir bot">
-              {roles.map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={r.id === activeRole?.id}
-                  className="bot-pill"
-                  onClick={() => setActiveId(r.id)}
-                >
-                  {r.name}
-                </button>
-              ))}
-            </div>
-
-            {activeRole && (
-              <RoleEditor key={activeRole.id} role={activeRole} saving={savingId === activeRole.id} onSave={save} />
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function RoleEditor({
-  role,
-  saving,
-  onSave,
-}: {
-  role: AiRole;
-  saving: boolean;
-  onSave: (id: string, name: string, systemPrompt: string) => void;
-}) {
-  const [name, setName] = useState(role.name);
-  const [params, setParams] = useState<BotRulesType>({ ...mockRules, name: role.name });
-  const [systemPrompt, setSystemPrompt] = useState(role.systemPrompt ?? "");
-  const [examples, setExamples] = useState<AiRoleExample[]>(role.examples ?? []);
-  const [newExampleTitle, setNewExampleTitle] = useState("");
-  const [newExampleContent, setNewExampleContent] = useState("");
-  const [isCreatingExample, setIsCreatingExample] = useState(false);
-  const [selectedExampleId, setSelectedExampleId] = useState<string | null>(null);
-  const [savingExample, setSavingExample] = useState<string | null>(null);
-  const [uploadingPdf, setUploadingPdf] = useState(false);
-  const [knowledgeFiles, setKnowledgeFiles] = useState(role.knowledgeFiles ?? []);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const { toast } = useToast();
-
-  useEffect(() => {
-    setName(role.name);
-    setParams(prev => ({ ...prev, name: role.name }));
-    setSystemPrompt(role.systemPrompt ?? "");
-    setExamples(role.examples ?? []);
-    setSelectedExampleId((role.examples ?? [])[0]?.id ?? null);
-    setKnowledgeFiles(role.knowledgeFiles ?? []);
-    setNewExampleTitle("");
-    setNewExampleContent("");
-    setIsCreatingExample(false);
-    setFieldErrors({});
-  }, [role.id, role.name, role.systemPrompt, role.examples, role.knowledgeFiles]);
-
-  const [activeTab, setActiveTab] = useState<TabId>('parameters');
-
-  const dirty = name !== role.name || systemPrompt !== (role.systemPrompt ?? "");
-  const maxExamplesReached = examples.length >= 3;
-  const selectedExample = examples.find((ex) => ex.id === selectedExampleId) ?? null;
-
-  const tabCounts: Record<TabId, number> = {
-    parameters:   1,
-    instructions: (systemPrompt.match(/\{\{[\w.]+\}\}/g) ?? []).length,
-    examples:     examples.length,
-    files:        knowledgeFiles.length,
-  };
-  const addExample = async () => {
-    if (!newExampleTitle.trim() || !newExampleContent.trim() || maxExamplesReached) return;
-    setSavingExample("new");
-    try {
-      const created = await aiRoles.addExample(role.id, {
-        title: newExampleTitle.trim(),
-        content: newExampleContent.trim(),
-      });
-      setExamples((prev) => [...prev, created]);
-      setSelectedExampleId(created.id);
-      setNewExampleTitle("");
-      setNewExampleContent("");
-      setIsCreatingExample(false);
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Error al crear ejemplo", "error");
-    } finally {
-      setSavingExample(null);
-    }
-  };
-
-  const saveExample = async (exampleId: string, title: string, content: string) => {
-    setSavingExample(exampleId);
-    try {
-      const updated = await aiRoles.updateExample(role.id, exampleId, { title, content });
-      setExamples((prev) => prev.map((ex) => (ex.id === exampleId ? updated : ex)));
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Error al guardar ejemplo", "error");
-    } finally {
-      setSavingExample(null);
-    }
-  };
-
-  const removeExample = async (exampleId: string) => {
-    setSavingExample(exampleId);
-    try {
-      await aiRoles.deleteExample(role.id, exampleId);
-      setExamples((prev) => {
-        const next = prev.filter((ex) => ex.id !== exampleId);
-        if (selectedExampleId === exampleId) {
-          setSelectedExampleId(next[0]?.id ?? null);
-        }
-        return next;
-      });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Error al eliminar ejemplo", "error");
-    } finally {
-      setSavingExample(null);
-    }
-  };
-
-  const onUploadPdf = async (file: File | null) => {
-    if (!file) return;
-    setUploadingPdf(true);
-    try {
-      const created = await aiRoles.uploadKnowledgeFile(role.id, file);
-      setKnowledgeFiles((prev) => [created, ...prev]);
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Error al subir PDF", "error");
-    } finally {
-      setUploadingPdf(false);
-    }
-  };
-
-  const removePdf = async (fileId: string) => {
-    try {
-      await aiRoles.deleteKnowledgeFile(role.id, fileId);
-      setKnowledgeFiles((prev) => prev.filter((f) => f.id !== fileId));
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Error al eliminar PDF", "error");
-    }
-  };
-
-  return (
-    <div role="tabpanel">
-      <StatStrip stats={mockStats} />
-      <TabBar active={activeTab} counts={tabCounts} onChange={setActiveTab} />
-
-      {activeTab === 'parameters' && (
-      <div style={{ padding: "0 1.25rem 2rem" }}>
-        <ParametersSection
-          rules={params}
-          onChange={(p) => {
-            setParams(prev => ({ ...prev, ...p }));
-            if (p.name !== undefined) setName(p.name);
-          }}
-        />
-        <div className="form-actions" style={{ marginTop: "1rem" }}>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={saving || !name.trim() || !systemPrompt.trim()}
-            onClick={() => onSave(role.id, params.name, systemPrompt)}
-          >
-            {saving ? "Guardando…" : "Guardar cambios"}
+        <div className="bots-gallery-header">
+          <div className="panel-toolbar-text">
+            <strong>Bots</strong>
+            <p className="panel-toolbar-sub">
+              Configurá y activá tus asistentes de IA.
+            </p>
+          </div>
+          <button className="btn btn-primary" onClick={() => navigate("/bots/new")}>
+            Nuevo bot
           </button>
         </div>
       </div>
-      )}
 
-      {activeTab === 'instructions' && (
-      <div className="bots-layout">
-      <article className="surface-card surface-card--accent bots-col-left">
-        <header className="surface-card__head">
-          <span className="surface-card__eyebrow">System prompt</span>
-          <h2 className="surface-card__title">Reglas e instrucciones</h2>
-          <p className="surface-card__desc">Usá {"{{variable}}"} para insertar contexto dinámico.</p>
-        </header>
-        <div className="surface-card__body">
-          <FormGroup label="Instrucciones" error={fieldErrors.systemPrompt}>
-            {(props) => (
-              <textarea
-                {...props}
-                value={systemPrompt}
-                onChange={(e) => { setSystemPrompt(e.target.value); setFieldErrors((prev) => ({ ...prev, systemPrompt: "" })); }}
-                onBlur={() => { if (!systemPrompt.trim()) setFieldErrors((prev) => ({ ...prev, systemPrompt: "Las instrucciones no pueden estar vacías" })); }}
-                rows={16}
-              />
-            )}
-          </FormGroup>
-          <div className="form-actions" style={{ marginTop: "0.75rem" }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={saving || !dirty || !name.trim() || !systemPrompt.trim()}
-              onClick={() => {
-                const newErrors: Record<string, string> = {};
-                if (!name.trim()) newErrors.name = "El nombre no puede estar vacío";
-                if (!systemPrompt.trim()) newErrors.systemPrompt = "Las instrucciones no pueden estar vacías";
-                if (Object.keys(newErrors).length > 0) { setFieldErrors(newErrors); return; }
-                onSave(role.id, name, systemPrompt);
-              }}
-            >
-              {saving ? "Guardando…" : "Guardar cambios"}
+      <div className="page-body">
+        <div className="bots-gallery-search">
+          <input
+            type="search"
+            placeholder="Buscar bot..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Buscar bot por nombre"
+          />
+        </div>
+
+        {loading ? (
+          <p className="page-empty">Cargando bots…</p>
+        ) : botList.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "3rem 0" }}>
+            <p style={{ color: "var(--text-muted)", marginBottom: "1rem" }}>
+              Aún no tenés bots configurados. Creá el primero.
+            </p>
+            <button className="btn btn-primary" onClick={() => navigate("/bots/new")}>
+              Nuevo bot
             </button>
           </div>
-        </div>
-      </article>
-      </div>
-      )}
-
-      {activeTab === 'examples' && (
-      <div className="bots-layout">
-      <div className="bots-col-right-wrap">
-      <article className="surface-card bots-col-right bots-col-right-top">
-        <header className="surface-card__head">
-          <span className="surface-card__eyebrow">Conversaciones</span>
-          <h2 className="surface-card__title">Ejemplos (máximo 3)</h2>
-          <p className="surface-card__desc">Usalos como referencia de tono y estructura de respuesta.</p>
-        </header>
-        <div className="surface-card__body bots-examples-grid">
-          <div className="card" style={{ background: "var(--bg)" }}>
-            {isCreatingExample ? (
-              <div>
-                <div className="form-group">
-                  <label>Título</label>
-                  <input value={newExampleTitle} onChange={(e) => setNewExampleTitle(e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label>Conversación</label>
-                  <textarea
-                    rows={8}
-                    value={newExampleContent}
-                    onChange={(e) => setNewExampleContent(e.target.value)}
-                    placeholder={"Cliente: Hola, necesito precio\nBot: Claro, te cuento..."}
-                  />
-                </div>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    disabled={savingExample === "new" || !newExampleTitle.trim() || !newExampleContent.trim()}
-                    onClick={addExample}
+        ) : (
+          <>
+            {filtered.length === 0 ? (
+              <p className="page-empty">No se encontraron bots con ese nombre.</p>
+            ) : (
+              <div className="bots-grid">
+                {filtered.map((bot) => (
+                  <article
+                    key={bot.id}
+                    className="bot-card"
+                    onClick={() => navigate(`/bots/${bot.id}/rules`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && navigate(`/bots/${bot.id}/rules`)
+                    }
+                    aria-label={`Configurar bot ${bot.name}`}
                   >
-                    {savingExample === "new" ? "Guardando…" : "Crear"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    disabled={savingExample === "new"}
-                    onClick={() => {
-                      setIsCreatingExample(false);
-                      setNewExampleTitle("");
-                      setNewExampleContent("");
-                      if (!selectedExampleId && examples.length > 0) setSelectedExampleId(examples[0].id);
-                    }}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            ) : selectedExample ? (
-              <ExampleEditor
-                example={selectedExample}
-                saving={savingExample === selectedExample.id}
-                onSave={saveExample}
-                onDelete={removeExample}
-              />
-            ) : (
-              <p className="page-empty" style={{ margin: 0 }}>
-                Seleccioná una conversación ejemplo para visualizarla.
-              </p>
-            )}
-          </div>
-
-          <div className="card" style={{ background: "var(--bg)", display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
-              <strong style={{ fontSize: "0.85rem" }}>Todas las conversaciones</strong>
-              {!maxExamplesReached && (
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => {
-                    setIsCreatingExample(true);
-                    setSelectedExampleId(null);
-                    setNewExampleTitle("");
-                    setNewExampleContent("");
-                  }}
-                >
-                  Crear
-                </button>
-              )}
-            </div>
-            {examples.length === 0 ? (
-              <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>Sin ejemplos cargados</span>
-            ) : (
-              examples.map((ex, idx) => (
-                <button
-                  key={ex.id}
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => {
-                    setSelectedExampleId(ex.id);
-                    setIsCreatingExample(false);
-                  }}
-                  style={{
-                    textAlign: "left",
-                    borderColor: selectedExampleId === ex.id ? "var(--accent-strong)" : undefined,
-                    background: selectedExampleId === ex.id ? "var(--accent-dim)" : undefined,
-                  }}
-                >
-                  <div style={{ fontSize: "0.8rem", fontWeight: 600 }}>#{idx + 1} {ex.title}</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {ex.content}
-                  </div>
-                </button>
-              ))
-            )}
-
-          </div>
-        </div>
-      </article>
-
-      </div>
-      </div>
-      )}
-
-      {activeTab === 'files' && (
-      <div className="bots-layout">
-      <article className="surface-card bots-col-left">
-        <header className="surface-card__head">
-          <span className="surface-card__eyebrow">Knowledge Base</span>
-          <h2 className="surface-card__title">Documentos PDF</h2>
-          <p className="surface-card__desc">Subí material para usarlo como base de conocimiento del bot.</p>
-        </header>
-        <div className="surface-card__body">
-          <input
-            type="file"
-            accept="application/pdf,.pdf"
-            disabled={uploadingPdf}
-            onChange={(e) => onUploadPdf(e.target.files?.[0] ?? null)}
-          />
-          <div style={{ marginTop: "0.8rem", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
-            {knowledgeFiles.length === 0 ? (
-              <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>Sin PDFs cargados</span>
-            ) : (
-              knowledgeFiles.map((file) => (
-                <div key={file.id} className="card" style={{ padding: "0.6rem 0.8rem", background: "var(--bg)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: "0.84rem", overflow: "hidden", textOverflow: "ellipsis" }}>{file.originalName}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </div>
+                    <div className="bot-card__header">
+                      <h3 className="bot-card__name">{bot.name}</h3>
+                      <label
+                        className="bot-card__toggle"
+                        onClick={(e) => e.stopPropagation()}
+                        title={
+                          bot.is_active
+                            ? "Activo — hacer clic para desactivar"
+                            : "Inactivo — hacer clic para activar"
+                        }
+                      >
+                        <input
+                          type="checkbox"
+                          checked={bot.is_active}
+                          disabled={togglingId === bot.id}
+                          onChange={(e) => handleToggleActive(e, bot)}
+                          aria-label={`${bot.is_active ? "Desactivar" : "Activar"} bot ${bot.name}`}
+                        />
+                        <span className="bot-card__toggle-label">
+                          {togglingId === bot.id
+                            ? "…"
+                            : bot.is_active
+                            ? "Activo"
+                            : "Inactivo"}
+                        </span>
+                      </label>
                     </div>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => removePdf(file.id)}>
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))
+
+                    <div className="bot-card__meta">
+                      {bot.template_type && (
+                        <span
+                          className={`badge-template badge-template--${bot.template_type}`}
+                        >
+                          {bot.template_type === "recepcionista"
+                            ? "Recepcionista"
+                            : "Comercial"}
+                        </span>
+                      )}
+                      {!bot.is_active && (
+                        <span className="badge-inactive">Inactivo</span>
+                      )}
+                    </div>
+
+                    <p className="bot-card__model">{bot.aiModel}</p>
+                  </article>
+                ))}
+
+                <button
+                  className="bot-card bot-card--add"
+                  onClick={() => navigate("/bots/new")}
+                  aria-label="Crear nuevo bot"
+                >
+                  <span className="bot-card__plus">+</span>
+                  <span>Nuevo bot</span>
+                </button>
+              </div>
             )}
-          </div>
-        </div>
-      </article>
-      </div>
-      )}
-    </div>
-  );
-}
-
-function ExampleEditor({
-  example,
-  saving,
-  onSave,
-  onDelete,
-}: {
-  example: AiRoleExample;
-  saving: boolean;
-  onSave: (id: string, title: string, content: string) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-}) {
-  const [title, setTitle] = useState(example.title);
-  const [content, setContent] = useState(example.content);
-
-  useEffect(() => {
-    setTitle(example.title);
-    setContent(example.content);
-  }, [example.id, example.title, example.content]);
-
-  const dirty = title !== example.title || content !== example.content;
-
-  return (
-    <div>
-      <div className="form-group">
-        <label>Título</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
-      </div>
-      <div className="form-group">
-        <label>Conversación</label>
-        <textarea rows={5} value={content} onChange={(e) => setContent(e.target.value)} />
-      </div>
-      <div style={{ display: "flex", gap: "0.5rem" }}>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          disabled={saving || !dirty || !title.trim() || !content.trim()}
-          onClick={() => onSave(example.id, title.trim(), content.trim())}
-        >
-          {saving ? "Guardando…" : "Guardar"}
-        </button>
-        <button type="button" className="btn btn-ghost btn-sm" disabled={saving} onClick={() => onDelete(example.id)}>
-          Eliminar
-        </button>
+          </>
+        )}
       </div>
     </div>
   );
