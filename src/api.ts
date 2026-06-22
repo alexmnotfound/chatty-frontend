@@ -312,12 +312,18 @@ export type AppSettings = {
   hasWhatsAppAccessToken: boolean;
   hasWhatsAppAppSecret: boolean;
   hasOpenAiApiKey: boolean;
+  hasAnthropicApiKey: boolean;
 };
 
 export const settings = {
   get: () => api<AppSettings>("/settings"),
-  update: (data: Partial<{ whatsappPhoneNumberId: string; whatsappAccessToken: string; whatsappAppSecret: string; openAiApiKey: string }>) =>
+  update: (data: Partial<{ whatsappPhoneNumberId: string; whatsappAccessToken: string; whatsappAppSecret: string; openAiApiKey: string; anthropicApiKey: string }>) =>
     api<AppSettings>("/settings", { method: "PATCH", body: JSON.stringify(data) }),
+  validateAiKey: (provider: 'openai' | 'claude', apiKey: string) =>
+    api<{ valid: true }>("/settings/validate-ai-key", {
+      method: "POST",
+      body: JSON.stringify({ provider, apiKey }),
+    }),
 };
 
 // --- Bots ---
