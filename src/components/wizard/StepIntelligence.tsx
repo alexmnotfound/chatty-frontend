@@ -3,8 +3,8 @@ import { BotForm, bots } from "../../api";
 import { FormGroup } from "../ui";
 
 const MODELS: Record<string, string[]> = {
-  openai: ["gpt-4o-mini", "gpt-4o"],
-  claude: ["claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-fable-5"],
+  openai: ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"],
+  claude: ["claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-opus-4-8"],
 };
 
 const GENDERS = [
@@ -22,9 +22,10 @@ const TONES = [
 interface Props {
   data: Partial<BotForm>;
   onChange: (d: Partial<BotForm>) => void;
+  availableProviders: ('openai' | 'claude')[];
 }
 
-export default function StepIntelligence({ data, onChange }: Props) {
+export default function StepIntelligence({ data, onChange, availableProviders }: Props) {
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
   const [testMsg, setTestMsg] = useState("");
   const provider = data.aiProvider ?? "openai";
@@ -53,17 +54,25 @@ export default function StepIntelligence({ data, onChange }: Props) {
       <div className="form-group">
         <label>Proveedor</label>
         <div className="wizard-pills">
-          {(["openai", "claude"] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              className={pillClass(provider === p)}
-              onClick={() => onChange({ ...data, aiProvider: p, aiModel: MODELS[p][0] })}
-            >
-              {p === "openai" ? "OpenAI" : "Claude"}
-            </button>
-          ))}
+          {(["openai", "claude"] as const)
+            .filter(p => availableProviders.includes(p))
+            .map((p) => (
+              <button
+                key={p}
+                type="button"
+                className={pillClass(provider === p)}
+                onClick={() => onChange({ ...data, aiProvider: p, aiModel: MODELS[p][0] })}
+              >
+                {p === "openai" ? "OpenAI" : "Claude"}
+              </button>
+            ))}
         </div>
+        {availableProviders.length === 0 && (
+          <p className="form-hint" style={{ color: 'var(--text-muted)' }}>
+            Configurá al menos un proveedor de IA en{' '}
+            <a href="/settings">Ajustes</a> para continuar.
+          </p>
+        )}
       </div>
 
       {/* API Key + Model row */}

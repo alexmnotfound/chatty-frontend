@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { bots, BotForm } from "../api";
+import { bots, BotForm, settings } from "../api";
 import SurfaceCard from "../components/ui/SurfaceCard";
 import StepIdentity from "../components/wizard/StepIdentity";
 import StepWhatsApp from "../components/wizard/StepWhatsApp";
@@ -21,7 +21,17 @@ export default function BotBuilder() {
   const [form, setForm] = useState<Partial<BotForm>>(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [availableProviders, setAvailableProviders] = useState<('openai' | 'claude')[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    settings.get().then((cfg) => {
+      const providers: ('openai' | 'claude')[] = [];
+      if (cfg.hasOpenAiApiKey) providers.push('openai');
+      if (cfg.hasAnthropicApiKey) providers.push('claude');
+      setAvailableProviders(providers);
+    }).catch(() => {});
+  }, []);
 
   async function handleSave() {
     setSaving(true);
@@ -39,7 +49,7 @@ export default function BotBuilder() {
   const stepComponents = [
     <StepIdentity key="identity" data={form} onChange={setForm} />,
     <StepWhatsApp key="whatsapp" data={form} onChange={setForm} />,
-    <StepIntelligence key="intelligence" data={form} onChange={setForm} />,
+    <StepIntelligence key="intelligence" data={form} onChange={setForm} availableProviders={availableProviders} />,
     <StepPlugins key="plugins" />,
   ];
 

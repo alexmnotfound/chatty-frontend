@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { aiRoles, type AiRole } from '../api';
+import { aiRoles, settings, type AiRole } from '../api';
 import type { BotRules as BotRulesType, TabId } from '../components/bot-rules/types';
 import { mockStats } from '../components/bot-rules/mockData';
 import { PageHeader } from '../components/bot-rules/PageHeader';
@@ -21,7 +21,7 @@ function extractVariables(text: string): string[] {
 function roleToRules(role: AiRole): BotRulesType {
   return {
     name: role.name,
-    model: 'claude-sonnet',
+    model: 'claude-sonnet-4-6',
     tone: 50,
     greeting: '',
     maxLength: 'short',
@@ -55,6 +55,7 @@ export default function BotRules() {
   const [activeTab, setActiveTab] = useState<TabId>('parameters');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [availableProviders, setAvailableProviders] = useState<('openai' | 'claude')[]>([]);
 
   useEffect(() => {
     aiRoles.list().then(list => {
@@ -64,6 +65,15 @@ export default function BotRules() {
       setRules(roleToRules(role));
     }).catch(() => setError('No se pudo cargar el bot.'));
   }, [id, navigate]);
+
+  useEffect(() => {
+    settings.get().then((cfg) => {
+      const providers: ('openai' | 'claude')[] = [];
+      if (cfg.hasOpenAiApiKey) providers.push('openai');
+      if (cfg.hasAnthropicApiKey) providers.push('claude');
+      setAvailableProviders(providers);
+    }).catch(() => {});
+  }, []);
 
   const patch = (p: Partial<BotRulesType>) => setRules(prev => prev ? { ...prev, ...p } : prev);
 
@@ -101,7 +111,7 @@ export default function BotRules() {
         <StatStrip stats={mockStats} />
         <TabBar active={activeTab} counts={counts} onChange={setActiveTab} />
 
-        {activeTab === 'parameters'   && <ParametersSection   rules={rules} onChange={patch} />}
+        {activeTab === 'parameters'   && <ParametersSection   rules={rules} onChange={patch} availableProviders={availableProviders} />}
         {activeTab === 'instructions' && <InstructionsSection rules={rules} onChange={patch} />}
         {activeTab === 'examples'     && <ExamplesSection     examples={rules.examples} />}
         {activeTab === 'files'        && <FilesSection        files={rules.files} />}
