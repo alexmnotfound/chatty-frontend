@@ -3011,3 +3011,5 @@ input.select {
   border-color: #5a4000;
   color: #f5d060;
 }
+
+[data-sileo-title] { text-transform: none; }
