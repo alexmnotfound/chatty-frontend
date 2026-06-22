@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { BotForm, bots } from "../../api";
+import { BotForm } from "../../api";
 import { FormGroup } from "../ui";
 
 const MODELS: Record<string, string[]> = {
@@ -27,23 +26,8 @@ interface Props {
 }
 
 export default function StepIntelligence({ data, onChange, availableProviders }: Props) {
-  const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
-  const [testMsg, setTestMsg] = useState("");
   const provider = data.aiProvider ?? "openai";
   const examples = data.examples ?? [];
-
-  async function handleTest() {
-    if (!data.aiApiKey || !data.aiModel) return;
-    setTestStatus("testing");
-    try {
-      const res = await bots.testAi(provider, data.aiApiKey, data.aiModel);
-      setTestStatus("ok");
-      setTestMsg(`OK: "${res.response}"`);
-    } catch (e: unknown) {
-      setTestStatus("error");
-      setTestMsg(e instanceof Error ? e.message : "Error al probar");
-    }
-  }
 
   function pillClass(selected: boolean) {
     return selected ? "wizard-pill wizard-pill--active" : "wizard-pill";
@@ -76,50 +60,23 @@ export default function StepIntelligence({ data, onChange, availableProviders }:
         )}
       </div>
 
-      {/* API Key + Model row */}
-      <FormGroup label="API Key">
+      {/* Model selector */}
+      <FormGroup label="Modelo">
         {(props) => (
-          <div className="wizard-row">
-            <input
-              {...props}
-              type="password"
-              className="wizard-row__input"
-              value={data.aiApiKey ?? ""}
-              onChange={(e) => onChange({ ...data, aiApiKey: e.target.value })}
-              placeholder={provider === "openai" ? "sk-..." : "sk-ant-..."}
-            />
-            <select
-              className="wizard-row__select select"
-              value={data.aiModel ?? MODELS[provider][0]}
-              onChange={(e) => onChange({ ...data, aiModel: e.target.value })}
-            >
-              {MODELS[provider].map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={handleTest}
-              disabled={testStatus === "testing" || !data.aiApiKey}
-            >
-              {testStatus === "testing" ? "Probando..." : "Probar"}
-            </button>
-          </div>
+          <select
+            {...props}
+            className="select"
+            value={data.aiModel ?? MODELS[provider][0]}
+            onChange={(e) => onChange({ ...data, aiModel: e.target.value })}
+          >
+            {MODELS[provider].map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
         )}
       </FormGroup>
-
-      {testMsg && (
-        <p
-          className={
-            testStatus === "ok" ? "wizard-status wizard-status--ok" : "wizard-status wizard-status--error"
-          }
-        >
-          {testMsg}
-        </p>
-      )}
 
       {/* Gender */}
       <div className="form-group">
