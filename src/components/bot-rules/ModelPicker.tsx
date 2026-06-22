@@ -4,12 +4,26 @@ import type { ModelId } from './types';
 interface ModelPickerProps {
   value: ModelId;
   onChange: (id: ModelId) => void;
+  availableProviders?: ('openai' | 'claude')[];
 }
 
-export function ModelPicker({ value, onChange }: ModelPickerProps) {
+export function ModelPicker({ value, onChange, availableProviders }: ModelPickerProps) {
+  const visible = availableProviders
+    ? MODEL_OPTIONS.filter(m => availableProviders.includes(m.provider))
+    : MODEL_OPTIONS;
+
+  if (visible.length === 0) {
+    return (
+      <p className="br-models-empty">
+        Ningún proveedor de IA configurado.{' '}
+        <a href="/settings">Configurar en Ajustes</a>
+      </p>
+    );
+  }
+
   return (
     <div className="br-models">
-      {MODEL_OPTIONS.map(m => {
+      {visible.map(m => {
         const selected = m.id === value;
         return (
           <button
@@ -19,8 +33,8 @@ export function ModelPicker({ value, onChange }: ModelPickerProps) {
             onClick={() => onChange(m.id)}
             aria-pressed={selected}
           >
-            <span className={`br-model-logo ${m.provider === 'anthropic' ? 'anth' : m.provider}`}>
-              {m.provider === 'anthropic' ? '★' : m.provider === 'openai' ? '◎' : '◆'}
+            <span className={`br-model-logo ${m.provider === 'claude' ? 'anth' : m.provider}`}>
+              {m.provider === 'claude' ? '★' : '◎'}
             </span>
             <span className="br-model-body">
               <span className="br-model-name">{m.name}</span>

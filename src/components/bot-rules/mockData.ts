@@ -1,14 +1,18 @@
 import type { BotRules, BotStats, ModelOption, Example, BotFile } from './types';
 
 export const MODEL_OPTIONS: ModelOption[] = [
-  { id: 'claude-sonnet', name: 'Claude Sonnet',  provider: 'anthropic', cost: '$$', note: 'rápido' },
-  { id: 'gpt-4o-mini',   name: 'GPT-4o mini',    provider: 'openai',    cost: '$',  note: 'muy rápido' },
-  { id: 'gemini-2.5',    name: 'Gemini 2.5',     provider: 'google',    cost: '$$', note: '1M ctx' },
+  { id: 'gpt-4o-mini',              name: 'GPT-4o mini',  provider: 'openai', cost: '$',   note: 'rápido y económico' },
+  { id: 'gpt-4o',                   name: 'GPT-4o',       provider: 'openai', cost: '$$',  note: 'equilibrado' },
+  { id: 'gpt-4.1',                  name: 'GPT-4.1',      provider: 'openai', cost: '$$',  note: 'última generación' },
+  { id: 'gpt-4.1-mini',             name: 'GPT-4.1 mini', provider: 'openai', cost: '$',   note: 'rápido' },
+  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku', provider: 'claude', cost: '$',  note: 'muy rápido' },
+  { id: 'claude-sonnet-4-6',        name: 'Claude Sonnet', provider: 'claude', cost: '$$', note: 'equilibrado' },
+  { id: 'claude-opus-4-8',          name: 'Claude Opus',  provider: 'claude', cost: '$$$', note: 'máxima calidad' },
 ];
 
 export const mockRules: BotRules = {
   name: 'Vendedor',
-  model: 'claude-sonnet',
+  model: 'gpt-4o-mini',
   tone: 50,
   greeting: '¡Hola! Soy Vendedor 👋 ¿Qué estás buscando hoy?',
   maxLength: 'short',

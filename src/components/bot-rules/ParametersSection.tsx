@@ -6,9 +6,10 @@ import { ToneSlider } from './ToneSlider';
 interface Props {
   rules: BotRules;
   onChange: (patch: Partial<BotRules>) => void;
+  availableProviders?: ('openai' | 'claude')[];
 }
 
-export function ParametersSection({ rules, onChange }: Props) {
+export function ParametersSection({ rules, onChange, availableProviders }: Props) {
   return (
     <section className="br-section">
       <header className="br-section-head">
@@ -32,7 +33,7 @@ export function ParametersSection({ rules, onChange }: Props) {
         </FieldRow>
 
         <FieldRow name="Modelo" hint="Costo · velocidad · contexto">
-          <ModelPicker value={rules.model} onChange={id => onChange({ model: id })} />
+          <ModelPicker value={rules.model} onChange={id => onChange({ model: id })} availableProviders={availableProviders} />
         </FieldRow>
 
         <FieldRow name="Tono" hint="formal ↔ casual">
