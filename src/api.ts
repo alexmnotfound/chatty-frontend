@@ -306,9 +306,8 @@ export const audit = {
 };
 
 export type AppSettings = {
+  whatsappPhoneNumber: string;
   whatsappPhoneNumberId: string;
-  whatsappAccessToken?: string;
-  openAiApiKey?: string;
   hasWhatsAppAccessToken: boolean;
   hasWhatsAppAppSecret: boolean;
   hasOpenAiApiKey: boolean;
@@ -317,7 +316,7 @@ export type AppSettings = {
 
 export const settings = {
   get: () => api<AppSettings>("/settings"),
-  update: (data: Partial<{ whatsappPhoneNumberId: string; whatsappAccessToken: string; whatsappAppSecret: string; openAiApiKey: string; anthropicApiKey: string }>) =>
+  update: (data: Partial<{ whatsappPhoneNumber: string; whatsappPhoneNumberId: string; whatsappAccessToken: string; whatsappAppSecret: string; openAiApiKey: string; anthropicApiKey: string }>) =>
     api<AppSettings>("/settings", { method: "PATCH", body: JSON.stringify(data) }),
   validateAiKey: (provider: 'openai' | 'claude', apiKey: string) =>
     api<{ valid: true }>("/settings/validate-ai-key", {

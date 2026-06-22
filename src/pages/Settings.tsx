@@ -12,22 +12,18 @@ export default function Settings() {
   const { toast } = useToast();
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [waPhoneNumberId, setWaPhoneNumberId] = useState("");
-  const [waToken, setWaToken] = useState("");
-  const [waAppSecret, setWaAppSecret] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [waModalOpen, setWaModalOpen] = useState(false);
+  const [waModalPhoneNumber, setWaModalPhoneNumber] = useState("");
+  const [waModalPhoneNumberId, setWaModalPhoneNumberId] = useState("");
+  const [waModalToken, setWaModalToken] = useState("");
+  const [waModalSecret, setWaModalSecret] = useState("");
+  const [waSaving, setWaSaving] = useState(false);
 
   type AiProvider = 'openai' | 'claude';
   const [aiModalProvider, setAiModalProvider] = useState<AiProvider | null>(null);
   const [aiKeyInput, setAiKeyInput] = useState("");
   const [aiKeyError, setAiKeyError] = useState("");
   const [aiKeySaving, setAiKeySaving] = useState(false);
-
-  const validatePhoneNumberId = (val: string) => {
-    if (val.trim() && !/^\d+$/.test(val.trim())) return "El Phone Number ID debe contener solo dígitos";
-    return "";
-  };
 
   const handleLogout = () => {
     logout();
@@ -42,7 +38,6 @@ export default function Settings() {
       .get()
       .then((cfg) => {
         setAppSettings(cfg);
-        setWaPhoneNumberId(cfg.whatsappPhoneNumberId ?? "");
       })
       .catch(() => {
         toast("No se pudo cargar la configuración", "error");
@@ -72,30 +67,37 @@ export default function Settings() {
     }
   };
 
-  const saveSettings = async () => {
-    const newErrors: Record<string, string> = {};
-    const phoneErr = validatePhoneNumberId(waPhoneNumberId);
-    if (phoneErr) newErrors.waPhoneNumberId = phoneErr;
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+  function phoneToFlag(number: string): string {
+    const map: [string, string][] = [
+      ['+54', '🇦🇷'], ['+1', '🇺🇸'], ['+52', '🇲🇽'],
+      ['+55', '🇧🇷'], ['+34', '🇪🇸'], ['+44', '🇬🇧'],
+    ];
+    for (const [prefix, flag] of map) {
+      if (number.startsWith(prefix)) return flag;
     }
+    return '📞';
+  }
 
-    setSaving(true);
+  const saveWaConfig = async () => {
+    setWaSaving(true);
     try {
-      const updated = await settings.update({
-        whatsappPhoneNumberId: waPhoneNumberId.trim() || undefined,
-        whatsappAccessToken: waToken.trim() || undefined,
-        whatsappAppSecret: waAppSecret.trim() || undefined,
-      });
+      const payload: Parameters<typeof settings.update>[0] = {};
+      if (waModalPhoneNumber.trim())   payload.whatsappPhoneNumber   = waModalPhoneNumber.trim();
+      if (waModalPhoneNumberId.trim()) payload.whatsappPhoneNumberId = waModalPhoneNumberId.trim();
+      if (waModalToken.trim())         payload.whatsappAccessToken   = waModalToken.trim();
+      if (waModalSecret.trim())        payload.whatsappAppSecret     = waModalSecret.trim();
+      const updated = await settings.update(payload);
       setAppSettings(updated);
-      setWaToken("");
-      setWaAppSecret("");
+      setWaModalOpen(false);
+      setWaModalPhoneNumber("");
+      setWaModalPhoneNumberId("");
+      setWaModalToken("");
+      setWaModalSecret("");
       toast("Configuración guardada", "success");
     } catch (e) {
       toast(e instanceof Error ? e.message : "No se pudo guardar", "error");
     } finally {
-      setSaving(false);
+      setWaSaving(false);
     }
   };
 
@@ -136,48 +138,43 @@ export default function Settings() {
                 title="WhatsApp"
                 description="Configurá las credenciales de tu número de WhatsApp Business."
               >
-                <FormGroup label="WhatsApp Phone Number ID" error={errors.waPhoneNumberId}>
-                  {(props) => (
-                    <input
-                      {...props}
-                      value={waPhoneNumberId}
-                      onChange={(e) => { setWaPhoneNumberId(e.target.value); setErrors((prev) => ({ ...prev, waPhoneNumberId: "" })); }}
-                      onBlur={() => { const err = validatePhoneNumberId(waPhoneNumberId); if (err) setErrors((prev) => ({ ...prev, waPhoneNumberId: err })); }}
-                      placeholder="Ej: 946522505220658"
-                    />
-                  )}
-                </FormGroup>
-                <FormGroup label="WhatsApp Access Token">
-                  {(props) => (
-                    <input
-                      {...props}
-                      type="password"
-                      value={waToken}
-                      onChange={(e) => setWaToken(e.target.value)}
-                      placeholder={
-                        appSettings?.hasWhatsAppAccessToken
-                          ? "Token configurado (escribí para reemplazar)"
-                          : "Pegar token"
-                      }
-                    />
-                  )}
-                </FormGroup>
-                <FormGroup label="WhatsApp App Secret">
-                  {(props) => (
-                    <input
-                      {...props}
-                      type="password"
-                      value={waAppSecret}
-                      onChange={(e) => setWaAppSecret(e.target.value)}
-                      placeholder={
-                        appSettings?.hasWhatsAppAppSecret
-                          ? "App Secret configurado (escribí para reemplazar)"
-                          : "Pegar App Secret"
-                      }
-                    />
-                  )}
-                </FormGroup>
-                <Button onClick={saveSettings} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+                <table className="ai-providers-table">
+                  <tbody>
+                    <tr className="ai-providers-row">
+                      <td className="ai-providers-name">
+                        {appSettings?.whatsappPhoneNumber
+                          ? `${phoneToFlag(appSettings.whatsappPhoneNumber)} ${appSettings.whatsappPhoneNumber}`
+                          : appSettings?.whatsappPhoneNumberId
+                          ? `ID: ${appSettings.whatsappPhoneNumberId}`
+                          : '—'}
+                      </td>
+                      <td className="ai-providers-status">
+                        {appSettings?.hasWhatsAppAccessToken && appSettings?.hasWhatsAppAppSecret
+                          ? <span className="badge badge-success">Configurado</span>
+                          : (appSettings?.hasWhatsAppAccessToken || appSettings?.hasWhatsAppAppSecret)
+                          ? <span className="badge badge-warning">Incompleto</span>
+                          : <span className="badge badge-muted">No configurado</span>}
+                      </td>
+                      <td className="ai-providers-action">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setWaModalPhoneNumber(appSettings?.whatsappPhoneNumber ?? "");
+                            setWaModalPhoneNumberId(appSettings?.whatsappPhoneNumberId ?? "");
+                            setWaModalToken("");
+                            setWaModalSecret("");
+                            setWaModalOpen(true);
+                          }}
+                        >
+                          {(appSettings?.whatsappPhoneNumber || appSettings?.whatsappPhoneNumberId || appSettings?.hasWhatsAppAccessToken)
+                            ? "Actualizar"
+                            : "Configurar"}
+                        </Button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </SurfaceCard>
             )}
 
@@ -258,6 +255,64 @@ export default function Settings() {
               <Button variant="ghost" onClick={() => setAiModalProvider(null)}>Cancelar</Button>
               <Button onClick={saveAiKey} disabled={aiKeySaving || !aiKeyInput.trim()}>
                 {aiKeySaving ? "Validando..." : "Guardar"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {waModalOpen && (
+        <div className="modal-overlay" onClick={() => setWaModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>WhatsApp Business</h3>
+            <FormGroup label="Número de teléfono">
+              {(props) => (
+                <input
+                  {...props}
+                  type="tel"
+                  value={waModalPhoneNumber}
+                  onChange={(e) => setWaModalPhoneNumber(e.target.value)}
+                  placeholder="+54 9 11 1234-5678"
+                  autoFocus
+                />
+              )}
+            </FormGroup>
+            <FormGroup label="Phone Number ID">
+              {(props) => (
+                <input
+                  {...props}
+                  value={waModalPhoneNumberId}
+                  onChange={(e) => setWaModalPhoneNumberId(e.target.value)}
+                  placeholder="Ej: 946522505220658"
+                />
+              )}
+            </FormGroup>
+            <FormGroup label="Access Token">
+              {(props) => (
+                <input
+                  {...props}
+                  type="password"
+                  value={waModalToken}
+                  onChange={(e) => setWaModalToken(e.target.value)}
+                  placeholder={appSettings?.hasWhatsAppAccessToken ? "Configurado (escribí para reemplazar)" : "Pegar token"}
+                />
+              )}
+            </FormGroup>
+            <FormGroup label="App Secret">
+              {(props) => (
+                <input
+                  {...props}
+                  type="password"
+                  value={waModalSecret}
+                  onChange={(e) => setWaModalSecret(e.target.value)}
+                  placeholder={appSettings?.hasWhatsAppAppSecret ? "Configurado (escribí para reemplazar)" : "Pegar App Secret"}
+                />
+              )}
+            </FormGroup>
+            <div className="modal-actions">
+              <Button variant="ghost" onClick={() => setWaModalOpen(false)}>Cancelar</Button>
+              <Button onClick={saveWaConfig} disabled={waSaving}>
+                {waSaving ? "Guardando..." : "Guardar"}
               </Button>
             </div>
           </div>
