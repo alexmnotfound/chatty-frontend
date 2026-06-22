@@ -1,10 +1,12 @@
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { MODEL_OPTIONS } from './mockData';
-import type { ModelId } from './types';
+import type { ModelId, ModelOption } from './types';
 
 interface ModelPickerProps {
   value: ModelId;
   onChange: (id: ModelId) => void;
-  availableProviders?: ('openai' | 'claude')[];
+  availableProviders?: ModelOption['provider'][];
 }
 
 export function ModelPicker({ value, onChange, availableProviders }: ModelPickerProps) {
@@ -12,11 +14,17 @@ export function ModelPicker({ value, onChange, availableProviders }: ModelPicker
     ? MODEL_OPTIONS.filter(m => availableProviders.includes(m.provider))
     : MODEL_OPTIONS;
 
+  useEffect(() => {
+    if (visible.length > 0 && !visible.find(m => m.id === value)) {
+      onChange(visible[0].id);
+    }
+  }, [visible, value, onChange]);
+
   if (visible.length === 0) {
     return (
       <p className="br-models-empty">
         Ningún proveedor de IA configurado.{' '}
-        <a href="/settings">Configurar en Ajustes</a>
+        <Link to="/settings">Configurar en Ajustes</Link>
       </p>
     );
   }

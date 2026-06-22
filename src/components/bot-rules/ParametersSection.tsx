@@ -1,4 +1,4 @@
-import type { BotRules } from './types';
+import type { BotRules, ModelOption } from './types';
 import { FieldRow } from './FieldRow';
 import { ModelPicker } from './ModelPicker';
 import { ToneSlider } from './ToneSlider';
@@ -6,7 +6,7 @@ import { ToneSlider } from './ToneSlider';
 interface Props {
   rules: BotRules;
   onChange: (patch: Partial<BotRules>) => void;
-  availableProviders?: ('openai' | 'claude')[];
+  availableProviders?: ModelOption['provider'][];
 }
 
 export function ParametersSection({ rules, onChange, availableProviders }: Props) {
