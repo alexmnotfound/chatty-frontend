@@ -335,6 +335,8 @@ export interface Bot {
   gender: string;
   tone: string;
   active: boolean;
+  is_active: boolean;
+  template_type: 'recepcionista' | 'comercial' | null;
   createdAt: string;
   whatsappPhoneNumberId: string | null;
   systemPrompt: string | null;
@@ -343,6 +345,13 @@ export interface Bot {
   hasWhatsappAppSecret?: boolean;
   hasAiApiKey?: boolean;
 }
+
+export type BotTemplate = {
+  key: 'recepcionista' | 'comercial';
+  name: string;
+  description: string;
+  systemPrompt: string;
+};
 
 export interface BotForm {
   name: string;
@@ -356,6 +365,7 @@ export interface BotForm {
   gender: string;
   tone: string;
   examples?: { userMessage: string; botResponse: string; order: number }[];
+  templateType?: 'recepcionista' | 'comercial' | null;
 }
 
 export const bots = {
@@ -365,6 +375,8 @@ export const bots = {
     api<{ id: string }>("/bots", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Partial<BotForm>) =>
     api<void>("/bots/" + id, { method: "PATCH", body: JSON.stringify(data) }),
+  toggleActive: (id: string, isActive: boolean) =>
+    api<void>("/bots/" + id, { method: "PATCH", body: JSON.stringify({ isActive }) }),
   verify: (phoneNumberId: string, accessToken: string) =>
     api<{ valid: boolean; displayPhoneNumber: string }>("/bots/verify", {
       method: "POST",
@@ -375,6 +387,10 @@ export const bots = {
       method: "POST",
       body: JSON.stringify({ provider, apiKey, model }),
     }),
+};
+
+export const botTemplates = {
+  list: () => api<BotTemplate[]>("/bots/templates"),
 };
 
 // --- Super Admin API ---
