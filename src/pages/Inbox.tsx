@@ -33,6 +33,7 @@ export default function Inbox() {
   const [selected, setSelected] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const activeConversationIdRef = useRef<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [roles, setRoles] = useState<AiRole[]>([]);
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; email: string; enabled: boolean }>>([]);
   const [reply, setReply] = useState("");
@@ -154,6 +155,10 @@ export default function Inbox() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const open = (c: ConversationItem) => navigate(`/inbox/${c.id}`);
   const takeOver = () => {
     if (!selected) return;
@@ -182,8 +187,7 @@ export default function Inbox() {
     try {
       await conversations.send(selected.id, reply.trim());
       setReply("");
-      const updated = await conversations.get(selected.id);
-      setSelected(updated);
+      await loadMessages(selected.id);
     } catch (err: any) {
       toast(err?.message ?? "No se pudo enviar el mensaje", "error");
     } finally {
@@ -428,6 +432,7 @@ export default function Inbox() {
                   </div>
                 );
               })}
+              <div ref={messagesEndRef} />
             </div>
             {selected?.status === "ai" && (
             <div style={{ display: "flex", gap: "8px", padding: "12px", borderTop: "1px solid var(--border)" }}>
