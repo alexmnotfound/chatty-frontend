@@ -336,6 +336,7 @@ export interface Bot {
   tone: string;
   active: boolean;
   is_active: boolean;
+  is_default: boolean;
   template_type: 'recepcionista' | 'comercial' | null;
   createdAt: string;
   whatsappPhoneNumberId: string | null;
@@ -377,6 +378,8 @@ export const bots = {
     api<void>("/bots/" + id, { method: "PATCH", body: JSON.stringify(data) }),
   toggleActive: (id: string, isActive: boolean) =>
     api<void>("/bots/" + id, { method: "PATCH", body: JSON.stringify({ isActive }) }),
+  setDefault: (id: string) =>
+    api<{ id: string; name: string; is_default: boolean }>("/bots/" + id + "/set-default", { method: "PATCH" }),
   verify: (phoneNumberId: string, accessToken: string) =>
     api<{ valid: boolean; displayPhoneNumber: string }>("/bots/verify", {
       method: "POST",

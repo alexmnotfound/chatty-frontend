@@ -45,6 +45,17 @@ export default function Bots() {
     }
   };
 
+  const handleSetDefault = async (e: React.MouseEvent, bot: Bot) => {
+    e.stopPropagation();
+    try {
+      await bots.setDefault(bot.id);
+      setBotList((prev) => prev.map((b) => ({ ...b, is_default: b.id === bot.id })));
+      toast(`"${bot.name}" es ahora el bot default`, "success");
+    } catch {
+      toast("No se pudo configurar el bot default", "error");
+    }
+  };
+
   return (
     <div className="panel" style={{ flex: 1, overflow: "auto", background: "var(--bg)" }}>
       <div className="panel-toolbar panel-toolbar--page">
@@ -139,12 +150,24 @@ export default function Bots() {
                             : "Comercial"}
                         </span>
                       )}
+                      {bot.is_default && (
+                        <span className="badge-default">Default</span>
+                      )}
                       {!bot.is_active && (
                         <span className="badge-inactive">Inactivo</span>
                       )}
                     </div>
 
                     <p className="bot-card__model">{bot.aiModel}</p>
+
+                    {!bot.is_default && (
+                      <button
+                        className="bot-card__set-default"
+                        onClick={(e) => handleSetDefault(e, bot)}
+                      >
+                        Usar como default
+                      </button>
+                    )}
                   </article>
                 ))}
 
