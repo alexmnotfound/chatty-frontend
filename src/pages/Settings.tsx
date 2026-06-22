@@ -15,9 +15,14 @@ export default function Settings() {
   const [waPhoneNumberId, setWaPhoneNumberId] = useState("");
   const [waToken, setWaToken] = useState("");
   const [waAppSecret, setWaAppSecret] = useState("");
-  const [openAiToken, setOpenAiToken] = useState("");
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  type AiProvider = 'openai' | 'claude';
+  const [aiModalProvider, setAiModalProvider] = useState<AiProvider | null>(null);
+  const [aiKeyInput, setAiKeyInput] = useState("");
+  const [aiKeyError, setAiKeyError] = useState("");
+  const [aiKeySaving, setAiKeySaving] = useState(false);
 
   const validatePhoneNumberId = (val: string) => {
     if (val.trim() && !/^\d+$/.test(val.trim())) return "El Phone Number ID debe contener solo dígitos";
@@ -45,6 +50,28 @@ export default function Settings() {
       .finally(() => setLoading(false));
   }, []);
 
+  const saveAiKey = async () => {
+    if (!aiModalProvider || !aiKeyInput.trim()) return;
+    setAiKeySaving(true);
+    setAiKeyError("");
+    try {
+      await settings.validateAiKey(aiModalProvider, aiKeyInput.trim());
+      const updated = await settings.update(
+        aiModalProvider === 'openai'
+          ? { openAiApiKey: aiKeyInput.trim() }
+          : { anthropicApiKey: aiKeyInput.trim() }
+      );
+      setAppSettings(updated);
+      setAiModalProvider(null);
+      setAiKeyInput("");
+      toast("API key guardada", "success");
+    } catch (e) {
+      setAiKeyError(e instanceof Error ? e.message : "API key inválida");
+    } finally {
+      setAiKeySaving(false);
+    }
+  };
+
   const saveSettings = async () => {
     const newErrors: Record<string, string> = {};
     const phoneErr = validatePhoneNumberId(waPhoneNumberId);
@@ -60,12 +87,10 @@ export default function Settings() {
         whatsappPhoneNumberId: waPhoneNumberId.trim() || undefined,
         whatsappAccessToken: waToken.trim() || undefined,
         whatsappAppSecret: waAppSecret.trim() || undefined,
-        openAiApiKey: openAiToken.trim() || undefined,
       });
       setAppSettings(updated);
       setWaToken("");
       setWaAppSecret("");
-      setOpenAiToken("");
       toast("Configuración guardada", "success");
     } catch (e) {
       toast(e instanceof Error ? e.message : "No se pudo guardar", "error");
@@ -108,8 +133,8 @@ export default function Settings() {
             {member?.role === "admin" && (
               <SurfaceCard
                 eyebrow="Integraciones"
-                title="WhatsApp y OpenAI"
-                description="Configurá credenciales sin tocar archivos `.env`."
+                title="WhatsApp"
+                description="Configurá las credenciales de tu número de WhatsApp Business."
               >
                 <FormGroup label="WhatsApp Phone Number ID" error={errors.waPhoneNumberId}>
                   {(props) => (
@@ -152,26 +177,42 @@ export default function Settings() {
                     />
                   )}
                 </FormGroup>
-                <FormGroup label="OpenAI API Key">
-                  {(props) => (
-                    <input
-                      {...props}
-                      type="password"
-                      value={openAiToken}
-                      onChange={(e) => setOpenAiToken(e.target.value)}
-                      placeholder={
-                        appSettings?.hasOpenAiApiKey
-                          ? "API key configurada (escribí para reemplazar)"
-                          : "Pegar API key"
-                      }
-                    />
-                  )}
-                </FormGroup>
-                <div className="form-actions">
-                  <Button loading={saving} onClick={saveSettings}>
-                    {saving ? "Guardando…" : "Guardar integraciones"}
-                  </Button>
-                </div>
+                <Button onClick={saveSettings} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+              </SurfaceCard>
+            )}
+
+            {member?.role === "admin" && (
+              <SurfaceCard
+                eyebrow="Integraciones"
+                title="Proveedores de IA"
+                description="Configurá las API keys para los modelos de lenguaje."
+              >
+                <table className="ai-providers-table">
+                  <tbody>
+                    {([
+                      { id: 'openai' as AiProvider, label: 'OpenAI', has: appSettings?.hasOpenAiApiKey },
+                      { id: 'claude' as AiProvider, label: 'Anthropic', has: appSettings?.hasAnthropicApiKey },
+                    ] as const).map(({ id, label, has }) => (
+                      <tr key={id} className="ai-providers-row">
+                        <td className="ai-providers-name">{label}</td>
+                        <td className="ai-providers-status">
+                          {has
+                            ? <span className="badge badge-success">Configurado</span>
+                            : <span className="badge badge-muted">No configurado</span>}
+                        </td>
+                        <td className="ai-providers-action">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => { setAiModalProvider(id); setAiKeyInput(""); setAiKeyError(""); }}
+                          >
+                            {has ? "Actualizar" : "Configurar"}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </SurfaceCard>
             )}
 
@@ -196,6 +237,32 @@ export default function Settings() {
           </>
         )}
       </div>
+
+      {aiModalProvider && (
+        <div className="modal-overlay" onClick={() => setAiModalProvider(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>{aiModalProvider === 'openai' ? 'OpenAI API Key' : 'Anthropic API Key'}</h3>
+            <FormGroup label="API Key" error={aiKeyError}>
+              {(props) => (
+                <input
+                  {...props}
+                  type="password"
+                  value={aiKeyInput}
+                  onChange={(e) => { setAiKeyInput(e.target.value); setAiKeyError(""); }}
+                  placeholder={aiModalProvider === 'openai' ? 'sk-...' : 'sk-ant-...'}
+                  autoFocus
+                />
+              )}
+            </FormGroup>
+            <div className="modal-actions">
+              <Button variant="ghost" onClick={() => setAiModalProvider(null)}>Cancelar</Button>
+              <Button onClick={saveAiKey} disabled={aiKeySaving || !aiKeyInput.trim()}>
+                {aiKeySaving ? "Validando..." : "Guardar"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

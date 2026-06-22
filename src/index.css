@@ -2686,3 +2686,34 @@ input.select {
   margin: 0 auto;
   line-height: 1.5;
 }
+
+/* AI Providers table */
+.ai-providers-table { width: 100%; border-collapse: collapse; }
+.ai-providers-row td { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.ai-providers-row:last-child td { border-bottom: none; }
+.ai-providers-name { font-weight: 500; }
+.ai-providers-status { text-align: center; }
+.ai-providers-action { text-align: right; }
+
+/* Badge modifiers for AI provider status */
+.badge-success {
+  background: rgba(37, 211, 102, 0.15);
+  color: #128c7e;
+  border-color: rgba(37, 211, 102, 0.35);
+}
+[data-theme="dark"] .badge-success {
+  color: #25d366;
+  background: rgba(37, 211, 102, 0.12);
+  border-color: rgba(37, 211, 102, 0.3);
+}
+.badge-muted {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+  border-color: var(--border-subtle);
+}
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 420px; max-width: 90vw; display: flex; flex-direction: column; gap: 16px; }
+.modal-card h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
