@@ -64,35 +64,37 @@ export default function Inbox() {
   const getUnreadTotal = (arr: ConversationItem[]) => arr.reduce((acc, c) => acc + (c.unread_count || 0), 0);
 
   async function loadConversations() {
-    if (!member?.companyId) return;
-    const { data } = await supabase
-      .from('conversations')
-      .select(`
-        id, status, unread_count, updated_at,
-        contact:contacts(wa_id, name),
-        active_bot:bots(id, name)
-      `)
-      .eq('company_id', member.companyId)
-      .order('updated_at', { ascending: false });
-    const items = (data ?? []) as unknown as ConversationItem[];
+    const data = await conversations.list().catch(() => [] as Conversation[]);
+    const items: ConversationItem[] = data.map((c) => ({
+      id: c.id,
+      status: c.status,
+      unread_count: c.unreadCount,
+      updated_at: c.updatedAt,
+      contact: c.contact ? { wa_id: c.contact.waId, name: c.contact.name } : null,
+      active_bot: null,
+    }));
     setList(items);
     emitInboxUnreadChanged(getUnreadTotal(items));
   }
 
   async function loadMessages(convId: string) {
-    const { data } = await supabase
-      .from('messages')
-      .select('id, direction, body, from_ai, created_at, bot:bots(name)')
-      .eq('conversation_id', convId)
-      .order('created_at', { ascending: true });
-    setMessages((data ?? []) as unknown as MessageItem[]);
+    const conv = await conversations.get(convId).catch(() => null);
+    if (!conv) return;
+    const items: MessageItem[] = [...conv.messages]
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      .map((m) => ({
+        id: m.id,
+        direction: m.direction,
+        body: m.body,
+        from_ai: m.fromAi,
+        created_at: m.createdAt,
+        bot: null,
+      }));
+    setMessages(items);
   }
 
   async function markAsRead(convId: string) {
-    await supabase
-      .from('conversations')
-      .update({ unread_count: 0 })
-      .eq('id', convId);
+    await conversations.setReadState(convId, false).catch(() => null);
   }
 
   useEffect(() => {
@@ -119,9 +121,11 @@ export default function Inbox() {
         filter: `company_id=eq.${member.companyId}`,
       }, (payload) => {
         const activeId = activeConversationIdRef.current;
-        if (payload.new && (payload.new as { conversation_id: string }).conversation_id === activeId) {
-          setMessages(prev => [...prev, payload.new as unknown as MessageItem]);
+        const convId = (payload.new as { conversation_id?: string })?.conversation_id;
+        if (convId === activeId) {
+          loadMessages(convId);
         }
+        loadConversations();
       })
       .subscribe();
 
