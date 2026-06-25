@@ -70,7 +70,7 @@ export default function Dashboard() {
 
     return (
       <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        <article className="surface-card">
+        <article className="surface-card surface-card--accent-blue">
           <header className="surface-card__head">
             <span className="surface-card__eyebrow">Conversaciones</span>
             <h2 className="surface-card__title">{m.conversations.total}</h2>
@@ -78,7 +78,7 @@ export default function Dashboard() {
           </header>
         </article>
 
-        <article className="surface-card">
+        <article className="surface-card surface-card--accent-amber">
           <header className="surface-card__head">
             <span className="surface-card__eyebrow">Tareas</span>
             <h2 className="surface-card__title">{m.tasks.total}</h2>
@@ -86,7 +86,7 @@ export default function Dashboard() {
           </header>
         </article>
 
-        <article className="surface-card">
+        <article className="surface-card surface-card--accent-green">
           <header className="surface-card__head">
             <span className="surface-card__eyebrow">Tareas (30 días)</span>
             <h2 className="surface-card__title">{m.tasks.doneInRange}</h2>
@@ -94,7 +94,7 @@ export default function Dashboard() {
           </header>
         </article>
 
-        <article className="surface-card">
+        <article className="surface-card surface-card--accent-purple">
           <header className="surface-card__head">
             <span className="surface-card__eyebrow">Actividad (30 días)</span>
             <h2 className="surface-card__title">{m.activity.totalEventsInRange}</h2>

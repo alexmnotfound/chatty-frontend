@@ -8,11 +8,15 @@ const statusLabel: Record<string, string> = {
   done: "Hecha",
 };
 
+type View = "kanban" | "by-client";
+
 export default function Tasks() {
   const navigate = useNavigate();
   const [list, setList] = useState<Task[]>([]);
+  const [view, setView] = useState<View>("kanban");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filterAssigned, setFilterAssigned] = useState<string>("");
+  const [filterContact, setFilterContact] = useState<string>("");
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; enabled: boolean }>>([]);
   const [dragOverStatus, setDragOverStatus] = useState<"pending" | "in_progress" | "done" | null>(null);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
@@ -38,14 +42,48 @@ export default function Tasks() {
   const visibleStatuses: Array<"pending" | "in_progress" | "done"> =
     filterStatus && (statuses as string[]).includes(filterStatus) ? [filterStatus as typeof statuses[number]] : statuses;
 
+  const filtered = filterContact.trim()
+    ? list.filter((t) => {
+        const q = filterContact.toLowerCase();
+        const name = t.conversation?.contact?.name?.toLowerCase() ?? "";
+        const waId = t.conversation?.contact?.waId?.toLowerCase() ?? "";
+        return name.includes(q) || waId.includes(q);
+      })
+    : list;
+
   const tasksByStatus: Record<"pending" | "in_progress" | "done", Task[]> = {
     pending: [],
     in_progress: [],
     done: [],
   };
-  for (const t of list) {
+  for (const t of filtered) {
     if (t.status in tasksByStatus) tasksByStatus[t.status].push(t);
   }
+
+  // Group by contact for by-client view
+  const tasksByContact: Array<{ contactId: string; contactName: string; waId: string; tasks: Task[] }> = [];
+  const contactMap = new Map<string, Task[]>();
+  for (const t of filtered) {
+    const cId = t.conversation?.contact?.waId ?? "unknown";
+    if (!contactMap.has(cId)) contactMap.set(cId, []);
+    contactMap.get(cId)!.push(t);
+  }
+  for (const [waId, tasks] of contactMap.entries()) {
+    const contact = tasks[0].conversation?.contact;
+    tasksByContact.push({
+      contactId: waId,
+      contactName: contact?.name ?? "",
+      waId,
+      tasks,
+    });
+  }
+  // Sort: contacts with pending/in_progress first, then by name
+  tasksByContact.sort((a, b) => {
+    const aActive = a.tasks.filter((t) => t.status !== "done").length;
+    const bActive = b.tasks.filter((t) => t.status !== "done").length;
+    if (bActive !== aActive) return bActive - aActive;
+    return (a.contactName || a.waId).localeCompare(b.contactName || b.waId);
+  });
 
   const updateStatus = (task: Task, status: "pending" | "in_progress" | "done") => {
     tasksApi.update(task.id, { status }).then((updated) => {
@@ -69,7 +107,7 @@ export default function Tasks() {
   };
 
   const onColumnDragOver = (e: DragEvent, status: "pending" | "in_progress" | "done") => {
-    e.preventDefault(); // Required to allow dropping
+    e.preventDefault();
     setDragOverStatus(status);
     e.dataTransfer.dropEffect = "move";
   };
@@ -101,64 +139,70 @@ export default function Tasks() {
     <div className="panel" style={{ flex: 1, overflow: "auto" }}>
       <div className="panel-toolbar">
         <strong>Tareas</strong>
+        <div style={{ marginLeft: "auto", display: "flex", gap: "0.25rem" }}>
+          <button
+            type="button"
+            className={`btn btn-ghost tasks-view-btn ${view === "kanban" ? "tasks-view-btn--active" : ""}`}
+            onClick={() => setView("kanban")}
+            title="Vista por estado"
+          >
+            Por estado
+          </button>
+          <button
+            type="button"
+            className={`btn btn-ghost tasks-view-btn ${view === "by-client" ? "tasks-view-btn--active" : ""}`}
+            onClick={() => setView("by-client")}
+            title="Vista por cliente"
+          >
+            Por cliente
+          </button>
+        </div>
       </div>
 
       <div style={{ padding: "1rem" }}>
-        <article className="surface-card" style={{ marginBottom: "1rem" }}>
-          <header className="surface-card__head">
-            <span className="surface-card__eyebrow">Filtros</span>
-            <h2 className="surface-card__title" style={{ fontSize: "1rem" }}>
-              Buscá por estado y asignación
-            </h2>
-          </header>
-          <div className="surface-card__body surface-card__body--tight">
-            <div className="form-grid-2">
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>Estado</label>
-                <select className="select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                  <option value="">Todas (3 columnas)</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="in_progress">En curso</option>
-                  <option value="done">Hecha</option>
-                </select>
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>Asignado</label>
-                <select className="select" value={filterAssigned} onChange={(e) => setFilterAssigned(e.target.value)}>
-                  <option value="">Todos</option>
-                  {teamMembers
-                    .filter((m) => m.enabled)
-                    .map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            </div>
-            <div className="form-actions" style={{ justifyContent: "space-between" }}>
-              <div style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-                {list.length} tarea{list.length === 1 ? "" : "s"} en la vista
-              </div>
-              {(filterStatus || filterAssigned) && (
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => {
-                    setFilterStatus("");
-                    setFilterAssigned("");
-                  }}
-                >
-                  Limpiar filtros
-                </button>
-              )}
-            </div>
-          </div>
-        </article>
+        <div className="tasks-filter-bar">
+          <select className="select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <option value="">Todos los estados</option>
+            <option value="pending">Pendiente</option>
+            <option value="in_progress">En curso</option>
+            <option value="done">Hecha</option>
+          </select>
+          <select className="select" value={filterAssigned} onChange={(e) => setFilterAssigned(e.target.value)}>
+            <option value="">Todos los agentes</option>
+            {teamMembers
+              .filter((m) => m.enabled)
+              .map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+          </select>
+          <input
+            className="select"
+            type="search"
+            placeholder="Buscar cliente o número…"
+            value={filterContact}
+            onChange={(e) => setFilterContact(e.target.value)}
+            style={{ flex: 1, minWidth: "160px" }}
+          />
+          <span className="tasks-filter-count">
+            {filtered.length} tarea{filtered.length === 1 ? "" : "s"}
+          </span>
+          {(filterStatus || filterAssigned || filterContact) && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ whiteSpace: "nowrap" }}
+              onClick={() => { setFilterStatus(""); setFilterAssigned(""); setFilterContact(""); }}
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
 
-        {list.length === 0 ? (
+        {filtered.length === 0 ? (
           <p className="empty">No hay tareas</p>
-        ) : (
+        ) : view === "kanban" ? (
           <article className="surface-card">
             <div className="tasks-columns">
               {visibleStatuses.map((status) => (
@@ -176,15 +220,13 @@ export default function Tasks() {
                     onDrop={(e) => onColumnDrop(e, status)}
                   >
                     {tasksByStatus[status].length === 0 ? (
-                      <p className="page-empty" style={{ margin: 0 }}>
-                        Sin tareas
-                      </p>
+                      <p className="page-empty" style={{ margin: 0 }}>Sin tareas</p>
                     ) : (
                       <div className="tasks-list">
                         {tasksByStatus[status].map((t) => (
                           <div
                             key={t.id}
-                            className={`card task-card ${draggingTaskId === t.id ? "is-dragging" : ""}`}
+                            className={`card task-card task-card--${t.status} ${draggingTaskId === t.id ? "is-dragging" : ""}`}
                             style={{ cursor: "pointer", marginBottom: "0.75rem" }}
                             draggable
                             onDragStart={(e) => onTaskDragStart(e, t)}
@@ -208,24 +250,20 @@ export default function Tasks() {
                                   </div>
                                 )}
                               </div>
-
-                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                <select
-                                  className="select"
-                                  value={t.status}
-                                  onChange={(e) => {
-                                    e.stopPropagation();
-                                    updateStatus(t, e.target.value as "pending" | "in_progress" | "done");
-                                  }}
-                                  style={{ fontSize: "0.75rem", padding: "0.25rem 0.45rem" }}
-                                >
-                                  <option value="pending">Pendiente</option>
-                                  <option value="in_progress">En curso</option>
-                                  <option value="done">Hecha</option>
-                                </select>
-                              </div>
+                              <select
+                                className="select"
+                                value={t.status}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  updateStatus(t, e.target.value as "pending" | "in_progress" | "done");
+                                }}
+                                style={{ fontSize: "0.75rem", padding: "0.25rem 0.45rem" }}
+                              >
+                                <option value="pending">Pendiente</option>
+                                <option value="in_progress">En curso</option>
+                                <option value="done">Hecha</option>
+                              </select>
                             </div>
-
                             {t.dueAt && (
                               <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginTop: "0.35rem" }}>
                                 Vence: {formatDate(t.dueAt)}
@@ -240,6 +278,72 @@ export default function Tasks() {
               ))}
             </div>
           </article>
+        ) : (
+          <div className="tasks-by-client">
+            {tasksByContact.map(({ contactId, contactName, waId, tasks }) => {
+              const activeTasks = tasks.filter((t) => t.status !== "done");
+              return (
+                <article key={contactId} className="surface-card tasks-client-group">
+                  <header className="tasks-client-group__header">
+                    <div className="tasks-client-group__identity">
+                      <strong className="tasks-client-group__name">
+                        {contactName || waId}
+                      </strong>
+                      {contactName && (
+                        <span className="tasks-client-group__waid">{waId}</span>
+                      )}
+                    </div>
+                    <div className="tasks-client-group__badges">
+                      {activeTasks.length > 0 && (
+                        <span className="tasks-client-badge tasks-client-badge--active">
+                          {activeTasks.length} activa{activeTasks.length === 1 ? "" : "s"}
+                        </span>
+                      )}
+                      <span className="tasks-client-badge">
+                        {tasks.length} total
+                      </span>
+                    </div>
+                  </header>
+                  <div className="tasks-client-group__list">
+                    {tasks.map((t) => (
+                      <div
+                        key={t.id}
+                        className="tasks-client-row"
+                        onClick={() => navigate(`/tasks/${t.id}`)}
+                      >
+                        <span className={`task-status ${t.status}`} style={{ minWidth: "76px" }}>
+                          {statusLabel[t.status] ?? t.status}
+                        </span>
+                        <span className="tasks-client-row__title">{t.title}</span>
+                        <div className="tasks-client-row__meta">
+                          {t.assignedTo && (
+                            <span className="cell-muted">{t.assignedTo.name}</span>
+                          )}
+                          {t.dueAt && (
+                            <span className="cell-muted">Vence {formatDate(t.dueAt)}</span>
+                          )}
+                        </div>
+                        <select
+                          className="select"
+                          value={t.status}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            updateStatus(t, e.target.value as "pending" | "in_progress" | "done");
+                          }}
+                          style={{ fontSize: "0.75rem", padding: "0.25rem 0.45rem" }}
+                        >
+                          <option value="pending">Pendiente</option>
+                          <option value="in_progress">En curso</option>
+                          <option value="done">Hecha</option>
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
