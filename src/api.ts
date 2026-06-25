@@ -310,6 +310,7 @@ export type AppSettings = {
   whatsappPhoneNumberId: string;
   hasWhatsAppAccessToken: boolean;
   hasWhatsAppAppSecret: boolean;
+  whatsappTokenExpired: boolean;
   hasOpenAiApiKey: boolean;
   hasAnthropicApiKey: boolean;
 };

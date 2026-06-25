@@ -148,7 +148,9 @@ export default function Settings() {
                           : '—'}
                       </td>
                       <td className="ai-providers-status">
-                        {appSettings?.hasWhatsAppAccessToken && appSettings?.hasWhatsAppAppSecret
+                        {appSettings?.whatsappTokenExpired
+                          ? <span className="badge badge-error">Token vencido</span>
+                          : appSettings?.hasWhatsAppAccessToken && appSettings?.hasWhatsAppAppSecret
                           ? <span className="badge badge-success">Configurado</span>
                           : (appSettings?.hasWhatsAppAccessToken || appSettings?.hasWhatsAppAppSecret)
                           ? <span className="badge badge-warning">Incompleto</span>
