@@ -328,6 +328,20 @@ export const settings = {
 
 // --- Bots ---
 
+export interface BotBusinessHours {
+  enabled: boolean;
+  days: string;
+  from: string;
+  to: string;
+  tz: string;
+}
+
+export interface BotHumanHandoff {
+  enabled: boolean;
+  team: string;
+  activeAgents: number;
+}
+
 export interface Bot {
   id: string;
   name: string;
@@ -335,6 +349,10 @@ export interface Bot {
   aiModel: string | null;
   gender: string;
   tone: string;
+  greeting: string | null;
+  maxLength: 'short' | 'medium' | 'long' | null;
+  businessHours: BotBusinessHours | null;
+  humanHandoff: BotHumanHandoff | null;
   active: boolean;
   is_active: boolean;
   is_default: boolean;
@@ -346,6 +364,14 @@ export interface Bot {
   hasWhatsappToken?: boolean;
   hasWhatsappAppSecret?: boolean;
   hasAiApiKey?: boolean;
+}
+
+export interface BotStats {
+  conversations7d: number;
+  conversationsDelta: number;
+  iaResolution: number;
+  humanHandoffRate: number;
+  csatAverage: number | null;
 }
 
 export type BotTemplate = {
@@ -366,6 +392,10 @@ export interface BotForm {
   systemPrompt?: string;
   gender: string;
   tone: string;
+  greeting?: string;
+  maxLength?: 'short' | 'medium' | 'long';
+  businessHours?: BotBusinessHours;
+  humanHandoff?: BotHumanHandoff;
   examples?: { userMessage: string; botResponse: string; order: number }[];
   templateType?: 'recepcionista' | 'comercial' | null;
 }
@@ -390,6 +420,16 @@ export const bots = {
     api<{ valid: boolean; response: string }>("/bots/test-ai", {
       method: "POST",
       body: JSON.stringify({ provider, apiKey, model }),
+    }),
+  stats: (id: string) => api<BotStats>(`/bots/${id}/stats`),
+  testChat: (
+    id: string,
+    systemPrompt: string,
+    history: { role: 'user' | 'assistant'; content: string }[]
+  ) =>
+    api<{ reply: string }>(`/bots/${id}/test-chat`, {
+      method: 'POST',
+      body: JSON.stringify({ systemPrompt, history }),
     }),
 };
 

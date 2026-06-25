@@ -1,7 +1,6 @@
-import type { BotRules, ModelOption } from './types';
+import type { BotRules, ModelOption, Tone, Gender } from './types';
 import { FieldRow } from './FieldRow';
 import { ModelPicker } from './ModelPicker';
-import { ToneSlider } from './ToneSlider';
 
 interface Props {
   rules: BotRules;
@@ -9,7 +8,43 @@ interface Props {
   availableProviders?: ModelOption['provider'][];
 }
 
+const TONE_OPTIONS: { value: Tone; label: string }[] = [
+  { value: 'formal',   label: 'Formal' },
+  { value: 'informal', label: 'Informal' },
+];
+
+const GENDER_OPTIONS: { value: Gender; label: string }[] = [
+  { value: 'feminine',   label: 'Femenino' },
+  { value: 'masculine',  label: 'Masculino' },
+  { value: 'non_binary', label: 'No binario' },
+  { value: 'neutral',    label: 'Neutral' },
+];
+
+function Pills<T extends string>({ value, options, onChange }: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="wizard-pill-group">
+      {options.map(o => (
+        <button
+          key={o.value}
+          type="button"
+          className={o.value === value ? 'wizard-pill wizard-pill--active' : 'wizard-pill'}
+          onClick={() => onChange(o.value)}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function ParametersSection({ rules, onChange, availableProviders }: Props) {
+  const bh = rules.businessHours;
+  const hh = rules.humanHandoff;
+
   return (
     <section className="br-section">
       <header className="br-section-head">
@@ -24,7 +59,6 @@ export function ParametersSection({ rules, onChange, availableProviders }: Props
           <h2>Parámetros</h2>
           <span className="desc">Identidad del bot · modelo · límites · contingencia.</span>
         </div>
-        <span className="chip">7 campos</span>
       </header>
 
       <div className="br-section-body">
@@ -36,15 +70,19 @@ export function ParametersSection({ rules, onChange, availableProviders }: Props
           <ModelPicker value={rules.model} onChange={id => onChange({ model: id })} availableProviders={availableProviders} />
         </FieldRow>
 
-        <FieldRow name="Tono" hint="formal ↔ casual">
-          <ToneSlider value={rules.tone} onChange={v => onChange({ tone: v })} />
+        <FieldRow name="Tono" hint="Cómo habla el bot">
+          <Pills value={rules.tone} options={TONE_OPTIONS} onChange={v => onChange({ tone: v })} />
         </FieldRow>
 
-        <FieldRow name="Saludo inicial" hint="primer mensaje">
+        <FieldRow name="Género" hint="Afecta conjugaciones y artículos">
+          <Pills value={rules.gender} options={GENDER_OPTIONS} onChange={v => onChange({ gender: v })} />
+        </FieldRow>
+
+        <FieldRow name="Saludo inicial" hint="Primer mensaje que envía el bot">
           <input className="br-input" value={rules.greeting} onChange={e => onChange({ greeting: e.target.value })} />
         </FieldRow>
 
-        <FieldRow name="Longitud máxima" hint="corta · media · larga">
+        <FieldRow name="Longitud máxima" hint="Corta · media · larga">
           <select
             className="br-input"
             value={rules.maxLength}
@@ -56,6 +94,58 @@ export function ParametersSection({ rules, onChange, availableProviders }: Props
           </select>
         </FieldRow>
 
+        <FieldRow name="Horario de atención" hint="Fuera de horario el bot avisa">
+          <label className="br-toggle-row">
+            <input
+              type="checkbox"
+              checked={bh.enabled}
+              onChange={e => onChange({ businessHours: { ...bh, enabled: e.target.checked } })}
+            />
+            <span>Activar horario</span>
+          </label>
+          {bh.enabled && (
+            <div className="br-inline-fields">
+              <input
+                className="br-input br-input--sm"
+                placeholder="Días (ej. Lun–Vie)"
+                value={bh.days}
+                onChange={e => onChange({ businessHours: { ...bh, days: e.target.value } })}
+              />
+              <input
+                className="br-input br-input--sm"
+                type="time"
+                value={bh.from}
+                onChange={e => onChange({ businessHours: { ...bh, from: e.target.value } })}
+              />
+              <span className="br-sep">–</span>
+              <input
+                className="br-input br-input--sm"
+                type="time"
+                value={bh.to}
+                onChange={e => onChange({ businessHours: { ...bh, to: e.target.value } })}
+              />
+            </div>
+          )}
+        </FieldRow>
+
+        <FieldRow name="Derivación a humano" hint="Cuándo el bot transfiere la conversación">
+          <label className="br-toggle-row">
+            <input
+              type="checkbox"
+              checked={hh.enabled}
+              onChange={e => onChange({ humanHandoff: { ...hh, enabled: e.target.checked } })}
+            />
+            <span>Activar derivación</span>
+          </label>
+          {hh.enabled && (
+            <input
+              className="br-input"
+              placeholder="Equipo destino (ej. ventas)"
+              value={hh.team}
+              onChange={e => onChange({ humanHandoff: { ...hh, team: e.target.value } })}
+            />
+          )}
+        </FieldRow>
       </div>
     </section>
   );

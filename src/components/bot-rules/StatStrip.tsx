@@ -22,7 +22,10 @@ export function StatStrip({ stats }: StatStripProps) {
         <span className="br-stat-value">{stats.humanHandoffRate}<span className="unit">%</span></span>
       </Stat>
       <Stat label="CSAT promedio">
-        <span className="br-stat-value">{stats.csatAverage}<span className="unit">/5</span></span>
+        {stats.csatAverage != null
+          ? <span className="br-stat-value">{stats.csatAverage}<span className="unit">/5</span></span>
+          : <span className="br-stat-value" style={{ color: 'var(--text-muted)' }}>—</span>
+        }
       </Stat>
     </div>
   );

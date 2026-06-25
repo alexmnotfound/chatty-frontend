@@ -13,7 +13,8 @@ export const MODEL_OPTIONS: ModelOption[] = [
 export const mockRules: BotRules = {
   name: 'Vendedor',
   model: 'gpt-4o-mini',
-  tone: 50,
+  tone: 'informal',
+  gender: 'neutral',
   greeting: '¡Hola! Soy Vendedor 👋 ¿Qué estás buscando hoy?',
   maxLength: 'short',
   businessHours: { enabled: true, days: 'Lun–Vie', from: '09:00', to: '18:00', tz: 'America/Bogotá' },

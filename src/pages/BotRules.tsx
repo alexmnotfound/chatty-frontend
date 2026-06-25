@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { aiRoles, settings, type AiRole } from '../api';
-import type { BotRules as BotRulesType, TabId } from '../components/bot-rules/types';
-import { mockStats } from '../components/bot-rules/mockData';
+import { bots, settings, type Bot, type BotStats } from '../api';
+import type { BotRules as BotRulesType, ModelId, TabId } from '../components/bot-rules/types';
 import { PageHeader } from '../components/bot-rules/PageHeader';
 import { StatStrip } from '../components/bot-rules/StatStrip';
 import { TabBar } from '../components/bot-rules/TabBar';
@@ -18,32 +17,26 @@ function extractVariables(text: string): string[] {
   return [...new Set([...matches].map(m => m[1]))];
 }
 
-function roleToRules(role: AiRole): BotRulesType {
+function botToRules(bot: Bot): BotRulesType {
   return {
-    name: role.name,
-    model: 'claude-sonnet-4-6',
-    tone: 50,
-    greeting: '',
-    maxLength: 'short',
-    businessHours: { enabled: false, days: 'Lun–Vie', from: '09:00', to: '18:00', tz: 'America/Argentina/Buenos_Aires' },
-    humanHandoff: { enabled: false, team: '', activeAgents: 0 },
-    instructions: role.systemPrompt ?? '',
-    variables: extractVariables(role.systemPrompt ?? ''),
-    examples: (role.examples ?? []).map(ex => ({
+    name: bot.name,
+    model: (bot.aiModel as ModelId) ?? 'gpt-4o-mini',
+    tone: (bot.tone as 'formal' | 'informal') ?? 'informal',
+    gender: (bot.gender as BotRulesType['gender']) ?? 'neutral',
+    greeting: bot.greeting ?? '',
+    maxLength: bot.maxLength ?? 'short',
+    businessHours: bot.businessHours ?? { enabled: false, days: 'Lun–Vie', from: '09:00', to: '18:00', tz: 'America/Argentina/Buenos_Aires' },
+    humanHandoff: bot.humanHandoff ?? { enabled: false, team: '', activeAgents: 0 },
+    instructions: bot.systemPrompt ?? '',
+    variables: extractVariables(bot.systemPrompt ?? ''),
+    examples: (bot.examples ?? []).map(ex => ({
       id: ex.id,
-      category: ex.title,
-      userSays: ex.content,
-      botReplies: '',
+      category: '',
+      userSays: ex.userMessage,
+      botReplies: ex.botResponse,
       status: 'learned' as const,
     })),
-    files: (role.knowledgeFiles ?? []).map(f => ({
-      id: f.id,
-      name: f.originalName,
-      kind: 'pdf' as const,
-      sizeBytes: f.size,
-      indexedAt: new Date(f.createdAt).toLocaleDateString('es-AR'),
-      status: 'active' as const,
-    })),
+    files: [],
   };
 }
 
@@ -51,19 +44,18 @@ export default function BotRules() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [rules, setRules] = useState<BotRulesType | null>(null);
-  const [roleId, setRoleId] = useState<string>('');
+  const [stats, setStats] = useState<BotStats | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('parameters');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [availableProviders, setAvailableProviders] = useState<('openai' | 'claude')[]>([]);
 
   useEffect(() => {
-    aiRoles.list().then(list => {
-      const role = list.find((r: AiRole) => r.id === id);
-      if (!role) { navigate('/bots', { replace: true }); return; }
-      setRoleId(role.id);
-      setRules(roleToRules(role));
+    if (!id) { navigate('/bots', { replace: true }); return; }
+    bots.get(id).then(bot => {
+      setRules(botToRules(bot));
     }).catch(() => setError('No se pudo cargar el bot.'));
+    bots.stats(id).then(setStats).catch(() => {});
   }, [id, navigate]);
 
   useEffect(() => {
@@ -82,7 +74,18 @@ export default function BotRules() {
     setSaving(true);
     setError('');
     try {
-      await aiRoles.update(roleId, { name: rules.name, systemPrompt: rules.instructions });
+      await bots.update(id!, {
+        name: rules.name,
+        aiModel: rules.model,
+        aiProvider: rules.model.startsWith('claude') ? 'claude' : 'openai',
+        tone: rules.tone,
+        gender: rules.gender,
+        systemPrompt: rules.instructions,
+        greeting: rules.greeting,
+        maxLength: rules.maxLength,
+        businessHours: rules.businessHours,
+        humanHandoff: rules.humanHandoff,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al guardar');
     } finally {
@@ -97,8 +100,8 @@ export default function BotRules() {
   if (!rules) return <p className="page-empty">{error || 'Cargando…'}</p>;
 
   const counts: Record<TabId, number> = {
-    parameters:   7,
-    instructions: rules.variables.length,
+    parameters:   0,
+    instructions: rules.instructions ? 1 : 0,
     examples:     rules.examples.length,
     files:        rules.files.length,
   };
@@ -108,7 +111,7 @@ export default function BotRules() {
       <main className="br-page">
         {error && <p style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>{error}</p>}
         <PageHeader botName={rules.name} onPublish={handlePublish} />
-        <StatStrip stats={mockStats} />
+        {stats && <StatStrip stats={stats} />}
         <TabBar active={activeTab} counts={counts} onChange={setActiveTab} />
 
         {activeTab === 'parameters'   && <ParametersSection   rules={rules} onChange={patch} availableProviders={availableProviders} />}
@@ -117,7 +120,7 @@ export default function BotRules() {
         {activeTab === 'files'        && <FilesSection        files={rules.files} />}
       </main>
 
-      <LivePreviewPanel botName={rules.name} />
+      <LivePreviewPanel botName={rules.name} botId={id!} systemPrompt={rules.instructions} />
 
       <div className="br-save-bar">
         <button className="br-btn-primary" onClick={handleSave} disabled={saving}>

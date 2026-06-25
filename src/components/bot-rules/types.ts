@@ -9,26 +9,30 @@ export type ModelId =
 export type MaxLength = 'short' | 'medium' | 'long';
 export type TabId = 'parameters' | 'instructions' | 'examples' | 'files';
 
+export type Tone = 'formal' | 'informal';
+export type Gender = 'masculine' | 'feminine' | 'non_binary' | 'neutral';
+
 export interface BotRules {
   name: string;
   model: ModelId;
-  tone: number;                                    // 0..100
+  tone: Tone;
+  gender: Gender;
   greeting: string;
   maxLength: MaxLength;
   businessHours: {
     enabled: boolean;
-    days: string;                                  // e.g. "Lun–Vie"
-    from: string;                                  // "09:00"
-    to: string;                                    // "18:00"
-    tz: string;                                    // "America/Bogotá"
+    days: string;
+    from: string;
+    to: string;
+    tz: string;
   };
   humanHandoff: {
     enabled: boolean;
-    team: string;                                  // "ventas"
+    team: string;
     activeAgents: number;
   };
   instructions: string;
-  variables: string[];                             // ["cliente.nombre", ...]
+  variables: string[];
   examples: Example[];
   files: BotFile[];
 }
@@ -52,10 +56,10 @@ export interface BotFile {
 
 export interface BotStats {
   conversations7d: number;
-  conversationsDelta: number;                      // % e.g. 12 or -3
-  iaResolution: number;                            // %
-  humanHandoffRate: number;                        // %
-  csatAverage: number;                             // 0..5
+  conversationsDelta: number;
+  iaResolution: number;
+  humanHandoffRate: number;
+  csatAverage: number | null;
 }
 
 export interface ModelOption {
