@@ -1,12 +1,15 @@
 import type { BotRules, ModelOption, Tone, Gender } from './types';
 import { FieldRow } from './FieldRow';
 import { ModelPicker } from './ModelPicker';
+import { Toggle } from './Toggle';
 
 interface Props {
   rules: BotRules;
   onChange: (patch: Partial<BotRules>) => void;
   availableProviders?: ModelOption['provider'][];
 }
+
+const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 const TONE_OPTIONS: { value: Tone; label: string }[] = [
   { value: 'formal',   label: 'Formal' },
@@ -95,56 +98,59 @@ export function ParametersSection({ rules, onChange, availableProviders }: Props
         </FieldRow>
 
         <FieldRow name="Horario de atención" hint="Fuera de horario el bot avisa">
-          <label className="br-toggle-row">
-            <input
-              type="checkbox"
+          <div className="br-toggle-row">
+            <Toggle
               checked={bh.enabled}
-              onChange={e => onChange({ businessHours: { ...bh, enabled: e.target.checked } })}
+              onChange={v => onChange({ businessHours: { ...bh, enabled: v } })}
+              label="Activar horario"
             />
-            <span>Activar horario</span>
-          </label>
+            <span className="br-toggle-label">Activar horario</span>
+          </div>
           {bh.enabled && (
-            <div className="br-inline-fields">
-              <input
-                className="br-input br-input--sm"
-                placeholder="Días (ej. Lun–Vie)"
-                value={bh.days}
-                onChange={e => onChange({ businessHours: { ...bh, days: e.target.value } })}
-              />
-              <input
-                className="br-input br-input--sm"
-                type="time"
-                value={bh.from}
-                onChange={e => onChange({ businessHours: { ...bh, from: e.target.value } })}
-              />
-              <span className="br-sep">–</span>
-              <input
-                className="br-input br-input--sm"
-                type="time"
-                value={bh.to}
-                onChange={e => onChange({ businessHours: { ...bh, to: e.target.value } })}
-              />
+            <div className="br-hours-config">
+              <div className="br-day-pills">
+                {DAYS.map(d => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={bh.days.includes(d) ? 'br-day-pill br-day-pill--on' : 'br-day-pill'}
+                    onClick={() => {
+                      const next = bh.days.includes(d)
+                        ? bh.days.filter(x => x !== d)
+                        : [...bh.days, d];
+                      onChange({ businessHours: { ...bh, days: next } });
+                    }}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+              <div className="br-inline-fields">
+                <input
+                  className="br-input br-input--sm"
+                  type="time"
+                  value={bh.from}
+                  onChange={e => onChange({ businessHours: { ...bh, from: e.target.value } })}
+                />
+                <span className="br-sep">–</span>
+                <input
+                  className="br-input br-input--sm"
+                  type="time"
+                  value={bh.to}
+                  onChange={e => onChange({ businessHours: { ...bh, to: e.target.value } })}
+                />
+              </div>
             </div>
           )}
         </FieldRow>
 
-        <FieldRow name="Derivación a humano" hint="Cuándo el bot transfiere la conversación">
-          <label className="br-toggle-row">
-            <input
-              type="checkbox"
-              checked={hh.enabled}
-              onChange={e => onChange({ humanHandoff: { ...hh, enabled: e.target.checked } })}
-            />
-            <span>Activar derivación</span>
-          </label>
-          {hh.enabled && (
-            <input
-              className="br-input"
-              placeholder="Equipo destino (ej. ventas)"
-              value={hh.team}
-              onChange={e => onChange({ humanHandoff: { ...hh, team: e.target.value } })}
-            />
-          )}
+        <FieldRow name="Derivación a humano" hint="El bot transfiere cuando no puede resolver">
+          <input
+            className="br-input"
+            placeholder="Equipo destino (ej. ventas)"
+            value={hh.team}
+            onChange={e => onChange({ humanHandoff: { ...hh, team: e.target.value } })}
+          />
         </FieldRow>
       </div>
     </section>

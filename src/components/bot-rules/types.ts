@@ -21,13 +21,12 @@ export interface BotRules {
   maxLength: MaxLength;
   businessHours: {
     enabled: boolean;
-    days: string;
+    days: string[];
     from: string;
     to: string;
     tz: string;
   };
   humanHandoff: {
-    enabled: boolean;
     team: string;
     activeAgents: number;
   };

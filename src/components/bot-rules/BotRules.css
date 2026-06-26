@@ -470,6 +470,28 @@
   transition: left .15s ease;
 }
 .br-toggle.off::after { left: 2px; }
+.br-toggle-row { display: flex; align-items: center; gap: 10px; }
+.br-toggle-label { font: 500 13px var(--font-sans); color: var(--text); }
+.br-hours-config { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.br-day-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.br-day-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-secondary);
+  font: 500 12px var(--font-sans);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.br-day-pill--on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.br-inline-fields { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.br-input--sm { width: auto; min-width: 0; }
+.br-sep { color: var(--muted); font-weight: 600; }
 .br-row .br-meta-line {
   font: 500 12.5px var(--font-sans); color: var(--text-secondary);
 }

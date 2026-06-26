@@ -18,24 +18,30 @@ function extractVariables(text: string): string[] {
 }
 
 function botToRules(bot: Bot): BotRulesType {
+  // Supabase returns snake_case; Bot type is camelCase — access both to be safe
+  const r = bot as unknown as Record<string, unknown>;
+  const systemPrompt = (r.system_prompt ?? bot.systemPrompt ?? '') as string;
+  const examples = ((r.examples ?? []) as Record<string, unknown>[]).map(ex => ({
+    id: ex.id as string,
+    category: '',
+    userSays: (ex.user_message ?? ex.userMessage ?? '') as string,
+    botReplies: (ex.bot_response ?? ex.botResponse ?? '') as string,
+    status: 'learned' as const,
+  }));
   return {
     name: bot.name,
-    model: (bot.aiModel as ModelId) ?? 'gpt-4o-mini',
-    tone: (bot.tone as 'formal' | 'informal') ?? 'informal',
-    gender: (bot.gender as BotRulesType['gender']) ?? 'neutral',
-    greeting: bot.greeting ?? '',
-    maxLength: bot.maxLength ?? 'short',
-    businessHours: bot.businessHours ?? { enabled: false, days: 'Lun–Vie', from: '09:00', to: '18:00', tz: 'America/Argentina/Buenos_Aires' },
-    humanHandoff: bot.humanHandoff ?? { enabled: false, team: '', activeAgents: 0 },
-    instructions: bot.systemPrompt ?? '',
-    variables: extractVariables(bot.systemPrompt ?? ''),
-    examples: (bot.examples ?? []).map(ex => ({
-      id: ex.id,
-      category: '',
-      userSays: ex.userMessage,
-      botReplies: ex.botResponse,
-      status: 'learned' as const,
-    })),
+    model: ((r.ai_model ?? bot.aiModel) as ModelId) ?? 'gpt-4o-mini',
+    tone: ((r.tone ?? bot.tone) as 'formal' | 'informal') ?? 'informal',
+    gender: ((r.gender ?? bot.gender) as BotRulesType['gender']) ?? 'neutral',
+    greeting: ((r.greeting ?? bot.greeting) as string | null) ?? '',
+    maxLength: ((r.max_length ?? bot.maxLength) as BotRulesType['maxLength'] | null) ?? 'short',
+    businessHours: ((r.business_hours ?? bot.businessHours) as BotRulesType['businessHours'] | null)
+      ?? { enabled: false, days: [], from: '09:00', to: '18:00', tz: 'America/Argentina/Buenos_Aires' },
+    humanHandoff: ((r.human_handoff ?? bot.humanHandoff) as BotRulesType['humanHandoff'] | null)
+      ?? { team: '', activeAgents: 0 },
+    instructions: systemPrompt,
+    variables: extractVariables(systemPrompt),
+    examples,
     files: [],
   };
 }

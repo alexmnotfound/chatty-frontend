@@ -330,14 +330,13 @@ export const settings = {
 
 export interface BotBusinessHours {
   enabled: boolean;
-  days: string;
+  days: string[];
   from: string;
   to: string;
   tz: string;
 }
 
 export interface BotHumanHandoff {
-  enabled: boolean;
   team: string;
   activeAgents: number;
 }
