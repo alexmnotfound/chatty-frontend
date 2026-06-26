@@ -313,11 +313,12 @@ export type AppSettings = {
   whatsappTokenExpired: boolean;
   hasOpenAiApiKey: boolean;
   hasAnthropicApiKey: boolean;
+  defaultRouting: "ai" | "human";
 };
 
 export const settings = {
   get: () => api<AppSettings>("/settings"),
-  update: (data: Partial<{ whatsappPhoneNumber: string; whatsappPhoneNumberId: string; whatsappAccessToken: string; whatsappAppSecret: string; openAiApiKey: string; anthropicApiKey: string }>) =>
+  update: (data: Partial<{ whatsappPhoneNumber: string; whatsappPhoneNumberId: string; whatsappAccessToken: string; whatsappAppSecret: string; openAiApiKey: string; anthropicApiKey: string; defaultRouting: "ai" | "human" }>) =>
     api<AppSettings>("/settings", { method: "PATCH", body: JSON.stringify(data) }),
   validateAiKey: (provider: 'openai' | 'claude', apiKey: string) =>
     api<{ valid: true }>("/settings/validate-ai-key", {
