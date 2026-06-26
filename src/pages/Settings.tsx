@@ -77,6 +77,16 @@ export default function Settings() {
     return '📞';
   }
 
+  const saveDefaultRouting = async (value: "ai" | "human") => {
+    try {
+      const updated = await settings.update({ defaultRouting: value });
+      setAppSettings(updated);
+      toast("Configuración guardada", "success");
+    } catch {
+      toast("No se pudo guardar", "error");
+    }
+  };
+
   const saveWaConfig = async () => {
     setWaSaving(true);
     try {
@@ -211,6 +221,31 @@ export default function Settings() {
                     ))}
                   </tbody>
                 </table>
+              </SurfaceCard>
+            )}
+
+            {member?.role === "admin" && (
+              <SurfaceCard
+                eyebrow="Comportamiento"
+                title="Atención por defecto"
+                description="Cómo se atienden los nuevos contactos la primera vez que escriben."
+              >
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <Button
+                    variant={appSettings?.defaultRouting === "ai" ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => saveDefaultRouting("ai")}
+                  >
+                    Bot
+                  </Button>
+                  <Button
+                    variant={appSettings?.defaultRouting === "human" ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => saveDefaultRouting("human")}
+                  >
+                    Humano
+                  </Button>
+                </div>
               </SurfaceCard>
             )}
 
