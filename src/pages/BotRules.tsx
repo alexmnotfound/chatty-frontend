@@ -91,16 +91,17 @@ export default function BotRules() {
         maxLength: rules.maxLength,
         businessHours: rules.businessHours,
         humanHandoff: rules.humanHandoff,
+        examples: rules.examples.map((ex, i) => ({
+          userMessage: ex.userSays,
+          botResponse: ex.botReplies,
+          order: i,
+        })),
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al guardar');
     } finally {
       setSaving(false);
     }
-  };
-
-  const handlePublish = async () => {
-    await handleSave();
   };
 
   if (!rules) return <p className="page-empty">{error || 'Cargando…'}</p>;
@@ -116,13 +117,13 @@ export default function BotRules() {
     <div className="br-main">
       <main className="br-page">
         {error && <p style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>{error}</p>}
-        <PageHeader botName={rules.name} onPublish={handlePublish} />
+        <PageHeader botName={rules.name} />
         {stats && <StatStrip stats={stats} />}
         <TabBar active={activeTab} counts={counts} onChange={setActiveTab} />
 
         {activeTab === 'parameters'   && <ParametersSection   rules={rules} onChange={patch} availableProviders={availableProviders} />}
         {activeTab === 'instructions' && <InstructionsSection rules={rules} onChange={patch} />}
-        {activeTab === 'examples'     && <ExamplesSection     examples={rules.examples} />}
+        {activeTab === 'examples'     && <ExamplesSection     examples={rules.examples} onChange={(ex) => patch({ examples: ex })} />}
         {activeTab === 'files'        && <FilesSection        files={rules.files} />}
       </main>
 
