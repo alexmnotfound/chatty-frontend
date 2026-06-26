@@ -188,6 +188,10 @@ export default function Layout() {
             <IconSettings className="sidebar-nav-icon" />
             <span className="sidebar-nav-text">Configuración</span>
           </NavLink>
+          <NavLink to="/perfil" className={linkClass} title={collapsed ? "Perfil" : undefined} onClick={() => setMobileOpen(false)}>
+            <IconUsers className="sidebar-nav-icon" />
+            <span className="sidebar-nav-text">Perfil</span>
+          </NavLink>
         </nav>
 
         <div className="sidebar-footer">

@@ -14,6 +14,7 @@ import Inbox from "./pages/Inbox";
 import Tasks from "./pages/Tasks";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import Users from "./pages/Users";
 import Bots from "./pages/Bots";
 import BotRules from "./pages/BotRules";
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="/tasks/:taskId" element={<Tasks />} />
       <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/perfil" element={<Profile />} />
         <Route path="/users" element={<Users />} />
         <Route path="/bots" element={<Bots />} />
         <Route path="/bots/new" element={<BotBuilder />} />

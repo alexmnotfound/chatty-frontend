@@ -315,11 +315,31 @@ export type AppSettings = {
   hasOpenAiApiKey: boolean;
   hasAnthropicApiKey: boolean;
   defaultRouting: "ai" | "human";
+  companyName: string;
+  companyHours: string;
+  companyAddress: string;
+  companyServices: string;
+  companyContact: string;
 };
+
+export type SettingsUpdate = Partial<{
+  whatsappPhoneNumber: string;
+  whatsappPhoneNumberId: string;
+  whatsappAccessToken: string;
+  whatsappAppSecret: string;
+  openAiApiKey: string;
+  anthropicApiKey: string;
+  defaultRouting: "ai" | "human";
+  companyName: string;
+  companyHours: string;
+  companyAddress: string;
+  companyServices: string;
+  companyContact: string;
+}>;
 
 export const settings = {
   get: () => api<AppSettings>("/settings"),
-  update: (data: Partial<{ whatsappPhoneNumber: string; whatsappPhoneNumberId: string; whatsappAccessToken: string; whatsappAppSecret: string; openAiApiKey: string; anthropicApiKey: string; defaultRouting: "ai" | "human" }>) =>
+  update: (data: SettingsUpdate) =>
     api<AppSettings>("/settings", { method: "PATCH", body: JSON.stringify(data) }),
   validateAiKey: (provider: 'openai' | 'claude', apiKey: string) =>
     api<{ valid: true }>("/settings/validate-ai-key", {
@@ -433,7 +453,7 @@ export const bots = {
       examples?: { userMessage: string; botResponse: string; order: number }[];
     }
   ) =>
-    api<{ reply: string }>(`/bots/${id}/test-chat`, {
+    api<{ reply: string; model?: string }>(`/bots/${id}/test-chat`, {
       method: 'POST',
       body: JSON.stringify({ systemPrompt, history, ...opts }),
     }),

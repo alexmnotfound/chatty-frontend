@@ -34,6 +34,7 @@ export function LivePreviewPanel({ botName = 'Bot', botId, systemPrompt, greetin
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [modelUsed, setModelUsed] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,8 +52,9 @@ export function LivePreviewPanel({ botName = 'Bot', botId, systemPrompt, greetin
     setLoading(true);
 
     try {
-      const { reply } = await bots.testChat(botId, systemPrompt, next, { tone, gender, examples });
-      setHistory(h => [...h, { role: 'assistant', content: reply }]);
+      const res = await bots.testChat(botId, systemPrompt, next, { tone, gender, examples });
+      setModelUsed(res.model ?? null);
+      setHistory(h => [...h, { role: 'assistant', content: res.reply }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al generar respuesta');
     } finally {
@@ -91,7 +93,7 @@ export function LivePreviewPanel({ botName = 'Bot', botId, systemPrompt, greetin
           <div className="br-chat-meta">
             <span className="br-chat-name">{botName}</span>
             <span className="br-chat-pres">
-              <span className="dot"/>en línea <span className="mode">· simulación</span>
+              <span className="dot"/>en l&#237;nea <span className="mode">· {modelUsed ?? 'simulaci&#243;n'}</span>
             </span>
           </div>
           {history.length > 0 && (
