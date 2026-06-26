@@ -127,7 +127,7 @@ export default function BotRules() {
         {activeTab === 'files'        && <FilesSection        files={rules.files} />}
       </main>
 
-      <LivePreviewPanel botName={rules.name} botId={id!} systemPrompt={rules.instructions} />
+      <LivePreviewPanel botName={rules.name} botId={id!} systemPrompt={rules.instructions} greeting={rules.greeting || undefined} />
 
       <div className="br-save-bar">
         <button className="br-btn-primary" onClick={handleSave} disabled={saving}>

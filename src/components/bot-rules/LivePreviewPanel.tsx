@@ -10,6 +10,7 @@ interface Props {
   botName?: string;
   botId: string;
   systemPrompt: string;
+  greeting?: string;
   onCollapse?: () => void;
 }
 
@@ -17,8 +18,10 @@ function fmt(d: Date) {
   return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 }
 
-export function LivePreviewPanel({ botName = 'Bot', botId, systemPrompt, onCollapse }: Props) {
-  const [history, setHistory] = useState<Message[]>([]);
+export function LivePreviewPanel({ botName = 'Bot', botId, systemPrompt, greeting, onCollapse }: Props) {
+  const [history, setHistory] = useState<Message[]>(
+    greeting ? [{ role: 'assistant', content: greeting }] : []
+  );
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
