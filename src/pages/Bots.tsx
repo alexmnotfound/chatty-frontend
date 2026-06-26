@@ -102,7 +102,7 @@ export default function Bots() {
                 {filtered.map((bot) => (
                   <article
                     key={bot.id}
-                    className="bot-card"
+                    className={`bot-card${bot.template_type ? ` bot-card--${bot.template_type}` : ""}`}
                     onClick={() => navigate(`/bots/${bot.id}/rules`)}
                     role="button"
                     tabIndex={0}
@@ -111,10 +111,12 @@ export default function Bots() {
                     }
                     aria-label={`Configurar bot ${bot.name}`}
                   >
-                    <div className="bot-card__header">
-                      <h3 className="bot-card__name">{bot.name}</h3>
+                    <div className="bot-card__portrait">
+                      <div className="bot-card__avatar">
+                        {bot.name.slice(0, 2).toUpperCase()}
+                      </div>
                       <label
-                        className="bot-card__toggle"
+                        className={`bot-card__status bot-card__status--${bot.is_active ? "active" : "inactive"}`}
                         onClick={(e) => e.stopPropagation()}
                         title={
                           bot.is_active
@@ -124,49 +126,36 @@ export default function Bots() {
                       >
                         <input
                           type="checkbox"
+                          style={{ display: "none" }}
                           checked={bot.is_active}
                           disabled={togglingId === bot.id}
                           onChange={(e) => handleToggleActive(e, bot)}
                           aria-label={`${bot.is_active ? "Desactivar" : "Activar"} bot ${bot.name}`}
                         />
-                        <span className="bot-card__toggle-label">
-                          {togglingId === bot.id
-                            ? "…"
-                            : bot.is_active
-                            ? "Activo"
-                            : "Inactivo"}
-                        </span>
+                        {togglingId === bot.id ? "…" : bot.is_active ? "Activo" : "Inactivo"}
                       </label>
                     </div>
 
-                    <div className="bot-card__meta">
-                      {bot.template_type && (
-                        <span
-                          className={`badge-template badge-template--${bot.template_type}`}
+                    <div className="bot-card__info">
+                      <h3 className="bot-card__name">{bot.name}</h3>
+                      <div className="bot-card__badges">
+                        {bot.template_type && (
+                          <span className={`badge-template badge-template--${bot.template_type}`}>
+                            {bot.template_type === "recepcionista" ? "Recepcionista" : "Comercial"}
+                          </span>
+                        )}
+                        {bot.is_default && <span className="badge-default">Default</span>}
+                      </div>
+                      <p className="bot-card__model">{bot.aiModel}</p>
+                      {!bot.is_default && (
+                        <button
+                          className="bot-card__set-default"
+                          onClick={(e) => handleSetDefault(e, bot)}
                         >
-                          {bot.template_type === "recepcionista"
-                            ? "Recepcionista"
-                            : "Comercial"}
-                        </span>
-                      )}
-                      {bot.is_default && (
-                        <span className="badge-default">Default</span>
-                      )}
-                      {!bot.is_active && (
-                        <span className="badge-inactive">Inactivo</span>
+                          Usar como default
+                        </button>
                       )}
                     </div>
-
-                    <p className="bot-card__model">{bot.aiModel}</p>
-
-                    {!bot.is_default && (
-                      <button
-                        className="bot-card__set-default"
-                        onClick={(e) => handleSetDefault(e, bot)}
-                      >
-                        Usar como default
-                      </button>
-                    )}
                   </article>
                 ))}
 
