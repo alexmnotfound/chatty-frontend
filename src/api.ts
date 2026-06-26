@@ -33,7 +33,8 @@ export async function api<T>(
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || res.statusText);
+    const msg = typeof err.error === 'string' ? err.error : (err.error ? JSON.stringify(err.error) : res.statusText);
+    throw new Error(msg);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
@@ -451,7 +452,8 @@ async function superApi<T>(path: string, options: RequestInit = {}): Promise<T> 
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || res.statusText);
+    const msg = typeof err.error === 'string' ? err.error : (err.error ? JSON.stringify(err.error) : res.statusText);
+    throw new Error(msg);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
