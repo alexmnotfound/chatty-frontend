@@ -6,11 +6,20 @@ interface Message {
   content: string;
 }
 
+interface BotExample {
+  userMessage: string;
+  botResponse: string;
+  order: number;
+}
+
 interface Props {
   botName?: string;
   botId: string;
   systemPrompt: string;
   greeting?: string;
+  tone?: string;
+  gender?: string;
+  examples?: BotExample[];
   onCollapse?: () => void;
 }
 
@@ -18,7 +27,7 @@ function fmt(d: Date) {
   return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 }
 
-export function LivePreviewPanel({ botName = 'Bot', botId, systemPrompt, greeting, onCollapse }: Props) {
+export function LivePreviewPanel({ botName = 'Bot', botId, systemPrompt, greeting, tone, gender, examples, onCollapse }: Props) {
   const [history, setHistory] = useState<Message[]>(
     greeting ? [{ role: 'assistant', content: greeting }] : []
   );
@@ -42,7 +51,7 @@ export function LivePreviewPanel({ botName = 'Bot', botId, systemPrompt, greetin
     setLoading(true);
 
     try {
-      const { reply } = await bots.testChat(botId, systemPrompt, next);
+      const { reply } = await bots.testChat(botId, systemPrompt, next, { tone, gender, examples });
       setHistory(h => [...h, { role: 'assistant', content: reply }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al generar respuesta');

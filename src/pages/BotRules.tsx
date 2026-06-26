@@ -127,7 +127,19 @@ export default function BotRules() {
         {activeTab === 'files'        && <FilesSection        files={rules.files} />}
       </main>
 
-      <LivePreviewPanel botName={rules.name} botId={id!} systemPrompt={rules.instructions} greeting={rules.greeting || undefined} />
+      <LivePreviewPanel
+        botName={rules.name}
+        botId={id!}
+        systemPrompt={rules.instructions}
+        greeting={rules.greeting || undefined}
+        tone={rules.tone}
+        gender={rules.gender}
+        examples={rules.examples.map((ex, i) => ({
+          userMessage: ex.userSays,
+          botResponse: ex.botReplies,
+          order: i,
+        }))}
+      />
 
       <div className="br-save-bar">
         <button className="br-btn-primary" onClick={handleSave} disabled={saving}>

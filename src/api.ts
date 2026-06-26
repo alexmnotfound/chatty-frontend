@@ -426,11 +426,16 @@ export const bots = {
   testChat: (
     id: string,
     systemPrompt: string,
-    history: { role: 'user' | 'assistant'; content: string }[]
+    history: { role: 'user' | 'assistant'; content: string }[],
+    opts?: {
+      tone?: string;
+      gender?: string;
+      examples?: { userMessage: string; botResponse: string; order: number }[];
+    }
   ) =>
     api<{ reply: string }>(`/bots/${id}/test-chat`, {
       method: 'POST',
-      body: JSON.stringify({ systemPrompt, history }),
+      body: JSON.stringify({ systemPrompt, history, ...opts }),
     }),
 };
 
