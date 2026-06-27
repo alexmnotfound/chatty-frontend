@@ -66,7 +66,7 @@ export default function BotRules() {
       kind: doc.source_type,
       sizeBytes: doc.size_bytes ?? 0,
       indexedAt,
-      status: doc.status === 'active' ? 'active' : doc.status === 'processing' ? 'processing' : doc.status === 'error' ? 'error' : 'review',
+      status: doc.status === 'active' ? 'active' : doc.status === 'inactive' ? 'inactive' : doc.status === 'processing' ? 'processing' : doc.status === 'error' ? 'error' : 'review',
     };
   }
 
@@ -163,6 +163,23 @@ export default function BotRules() {
             try {
               const doc = await botDocuments.pasteText(id!, text, name);
               patch({ files: [...(rules?.files ?? []), docToFile(doc)] });
+            } finally {
+              setUploading(false);
+            }
+          }}
+          onToggleStatus={async (docId, newStatus) => {
+            const doc = await botDocuments.toggleStatus(id!, docId, newStatus);
+            patch({ files: (rules?.files ?? []).map(f => f.id === docId ? { ...f, status: docToFile(doc).status } : f) });
+          }}
+          onGetContent={async (docId) => {
+            const { content } = await botDocuments.getContent(id!, docId);
+            return content;
+          }}
+          onUpdatePaste={async (docId, text, name) => {
+            setUploading(true);
+            try {
+              const doc = await botDocuments.updatePaste(id!, docId, text, name);
+              patch({ files: (rules?.files ?? []).map(f => f.id === docId ? docToFile(doc) : f) });
             } finally {
               setUploading(false);
             }

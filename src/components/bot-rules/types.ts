@@ -46,7 +46,7 @@ export interface BotFile {
   kind: 'pdf' | 'txt' | 'paste';
   sizeBytes: number;
   indexedAt: string;
-  status: 'active' | 'review' | 'processing' | 'error';
+  status: 'active' | 'inactive' | 'review' | 'processing' | 'error';
 }
 
 export interface BotStats {

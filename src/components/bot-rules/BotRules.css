@@ -771,7 +771,9 @@
 }
 .br-badge.ia      { color: var(--success); background: var(--success-bg); border-color: rgba(37,211,102,0.28); }
 .br-badge.human   { color: var(--accent);  background: var(--accent-dim); border-color: var(--nav-active-border); }
-.br-badge.neutral { color: var(--text-secondary); background: var(--bg); border-color: var(--border-subtle); }
+.br-badge.neutral  { color: var(--text-secondary); background: var(--bg); border-color: var(--border-subtle); }
+.br-badge.warning  { color: #92400e; background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.3); }
+[data-theme="dark"] .br-badge.warning { color: #fbbf24; background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.25); }
 
 /* ---- Files layout ---- */
 .br-file-list { display: flex; flex-direction: column; padding: 6px 18px 4px; gap: 4px; }
@@ -790,6 +792,9 @@
 }
 .br-file-delete:hover { opacity: 1; background: var(--danger-bg); color: var(--danger); }
 .br-file-delete:disabled { cursor: not-allowed; opacity: 0.25; }
+.br-file-toggle { cursor: pointer; border: none; transition: opacity 0.15s; }
+.br-file-toggle:hover { opacity: 0.75; }
+.br-file-toggle:disabled { cursor: not-allowed; }
 
 .br-file-actions {
   display: flex; gap: 10px;
