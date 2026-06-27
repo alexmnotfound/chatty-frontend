@@ -123,9 +123,20 @@ export default function Inbox() {
         table: 'messages',
       }, (payload) => {
         const activeId = activeConversationIdRef.current;
-        const convId = (payload.new as { conversation_id?: string })?.conversation_id;
-        if (convId === activeId) {
-          loadMessages(convId);
+        const msg = payload.new as Record<string, unknown>;
+        const convId = msg?.conversation_id as string | undefined;
+        if (convId && convId === activeId) {
+          setMessages(prev => [
+            ...prev,
+            {
+              id: msg.id as string,
+              direction: msg.direction as string,
+              body: msg.body as string,
+              from_ai: Boolean(msg.from_ai),
+              created_at: msg.created_at as string,
+              bot: null,
+            },
+          ]);
         }
         loadConversations();
       })
