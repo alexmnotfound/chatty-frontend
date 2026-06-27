@@ -69,47 +69,52 @@ export function FilesSection({ files, onUpload, onDelete, onPasteText, uploading
         <span className="chip">{files.length} archivos · {totalMB.replace('.', ',')} MB</span>
       </header>
 
-      <div className="br-files">
-        {files.map(f => {
-          const k = KIND_STYLES[f.kind];
-          const sizeLabel = f.sizeBytes >= 1_000_000
-            ? `${(f.sizeBytes / 1_000_000).toFixed(1).replace('.', ',')} MB`
-            : `${Math.round(f.sizeBytes / 1_000)} KB`;
-          const isDeleting = deletingId === f.id;
-          return (
-            <div key={f.id} className="br-file">
-              <div className={`br-file-kind ${k.cls}`}>{k.label}</div>
-              <div className="br-file-meta">
-                <div className="br-file-name">{f.name}</div>
-                <div className="br-file-hint">{sizeLabel} · indexado {f.indexedAt}</div>
+      {/* Existing files — full-width rows */}
+      {(files.length > 0 || uploading) && (
+        <div className="br-file-list">
+          {files.map(f => {
+            const k = KIND_STYLES[f.kind];
+            const sizeLabel = f.sizeBytes >= 1_000_000
+              ? `${(f.sizeBytes / 1_000_000).toFixed(1).replace('.', ',')} MB`
+              : `${Math.round(f.sizeBytes / 1_000)} KB`;
+            const isDeleting = deletingId === f.id;
+            return (
+              <div key={f.id} className="br-file-row">
+                <div className={`br-file-kind ${k.cls}`}>{k.label}</div>
+                <div className="br-file-meta">
+                  <div className="br-file-name">{f.name}</div>
+                  <div className="br-file-hint">{sizeLabel} · indexado {f.indexedAt}</div>
+                </div>
+                <span className={`br-badge ${f.status === 'active' ? 'ia' : 'neutral'}`}>
+                  {STATUS_LABEL[f.status] ?? f.status}
+                </span>
+                <button
+                  className="br-file-delete"
+                  title="Eliminar"
+                  disabled={isDeleting}
+                  onClick={() => handleDelete(f.id)}
+                >
+                  ✕
+                </button>
               </div>
-              <span className={`br-badge ${f.status === 'active' ? 'ia' : 'neutral'}`}>
-                {STATUS_LABEL[f.status] ?? f.status}
-              </span>
-              <button
-                className="br-file-delete"
-                title="Eliminar"
-                disabled={isDeleting}
-                onClick={() => handleDelete(f.id)}
-                style={{ marginLeft: 8, background: 'none', border: 'none', cursor: 'pointer', opacity: isDeleting ? 0.4 : 0.6, fontSize: 14 }}
-              >
-                ✕
-              </button>
-            </div>
-          );
-        })}
+            );
+          })}
 
-        {uploading && (
-          <div className="br-file">
-            <div className="br-file-kind upload">…</div>
-            <div className="br-file-meta">
-              <div className="br-file-name">Procesando…</div>
-              <div className="br-file-hint">Generando embeddings</div>
+          {uploading && (
+            <div className="br-file-row">
+              <div className="br-file-kind upload">…</div>
+              <div className="br-file-meta">
+                <div className="br-file-name">Procesando…</div>
+                <div className="br-file-hint">Generando embeddings</div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
-        <label className="br-file br-file-upload" style={{ cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.5 : 1 }}>
+      {/* Add actions */}
+      <div className="br-file-actions">
+        <label className="br-file-action-btn" style={{ cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.5 : 1 }}>
           <div className="br-file-kind upload">↑</div>
           <div className="br-file-meta">
             <div className="br-file-name">Subir archivo</div>
@@ -125,8 +130,7 @@ export function FilesSection({ files, onUpload, onDelete, onPasteText, uploading
         </label>
 
         <button
-          className="br-file br-file-upload"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}
+          className="br-file-action-btn"
           onClick={() => setShowPaste(p => !p)}
         >
           <div className="br-file-kind doc">✎</div>
@@ -138,7 +142,7 @@ export function FilesSection({ files, onUpload, onDelete, onPasteText, uploading
       </div>
 
       {showPaste && (
-        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
+        <div style={{ margin: '0 18px 18px', display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
           <input
             className="br-input"
             placeholder="Nombre del documento (opcional)"
