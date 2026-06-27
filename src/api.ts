@@ -69,7 +69,8 @@ export type Conversation = {
   id: string;
   contactId: string;
   contact: { id: string; waId: string; name: string | null };
-  status: "ai" | "human";
+  status: "ai" | "human" | "resolved";
+  resolvedBy: "bot" | "human" | null;
   unreadCount: number;
   aiRoleId: string | null;
   aiRole: { id: string; key: string; name: string } | null;
@@ -128,6 +129,8 @@ export const conversations = {
       method: "POST",
       body: JSON.stringify({ botId }),
     }),
+  resolve: (id: string) =>
+    api<Conversation>(`/conversations/${id}/resolve`, { method: "POST" }),
 };
 
 export type Task = {
@@ -460,7 +463,7 @@ export interface BotDocument {
   name: string;
   source_type: 'pdf' | 'txt' | 'paste';
   size_bytes: number;
-  status: 'processing' | 'active' | 'error';
+  status: 'processing' | 'active' | 'inactive' | 'error';
   created_at: string;
 }
 
@@ -486,6 +489,12 @@ export const botDocuments = {
       method: 'POST',
       body: JSON.stringify({ text, name }),
     }),
+  toggleStatus: (botId: string, docId: string, status: 'active' | 'inactive') =>
+    api<BotDocument>(`/bots/${botId}/documents/${docId}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  getContent: (botId: string, docId: string) =>
+    api<{ content: string }>(`/bots/${botId}/documents/${docId}/content`),
+  updatePaste: (botId: string, docId: string, text: string, name: string) =>
+    api<BotDocument>(`/bots/${botId}/documents/${docId}`, { method: 'PATCH', body: JSON.stringify({ text, name }) }),
   delete: (botId: string, docId: string) =>
     api<void>(`/bots/${botId}/documents/${docId}`, { method: 'DELETE' }),
 };

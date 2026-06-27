@@ -43,7 +43,7 @@ export default function Inbox() {
   const [newTaskAssign, setNewTaskAssign] = useState("");
   const [creatingTask, setCreatingTask] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"" | "ai" | "human" | "unread">("");
+  const [filterStatus, setFilterStatus] = useState<"" | "ai" | "human" | "unread" | "resolved">("");
   const [botList, setBotList] = useState<Bot[]>([]);
   const [selectedBotId, setSelectedBotId] = useState<string>("");
 
@@ -52,6 +52,7 @@ export default function Inbox() {
     if (filterStatus === "unread") items = items.filter((c) => c.unread_count > 0);
     else if (filterStatus === "ai") items = items.filter((c) => c.status === "ai");
     else if (filterStatus === "human") items = items.filter((c) => c.status === "human");
+    else if (filterStatus === "resolved") items = items.filter((c) => c.status === "resolved");
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       items = items.filter(
@@ -194,6 +195,13 @@ export default function Inbox() {
       loadConversations();
     });
   };
+  const resolve = () => {
+    if (!selected) return;
+    conversations.resolve(selected.id).then((updated) => {
+      setSelected(updated);
+      loadConversations();
+    });
+  };
   const setAiRole = (aiRoleId: string) => {
     if (!selected) return;
     conversations.setAiRole(selected.id, aiRoleId).then((updated) => {
@@ -275,14 +283,14 @@ export default function Inbox() {
           />
         </div>
         <div className="inbox-filters">
-          {(["", "unread", "ai", "human"] as const).map((f) => (
+          {(["", "unread", "ai", "human", "resolved"] as const).map((f) => (
             <button
               key={f}
               type="button"
               className={`inbox-filter-chip ${filterStatus === f ? "active" : ""}`}
               onClick={() => setFilterStatus(f)}
             >
-              {f === "" ? "Todas" : f === "unread" ? "No leídas" : f === "ai" ? "IA" : "Humano"}
+              {f === "" ? "Todas" : f === "unread" ? "No leídas" : f === "ai" ? "IA" : f === "human" ? "Humano" : "Resueltas"}
             </button>
           ))}
         </div>
@@ -302,7 +310,7 @@ export default function Inbox() {
                 <strong>{c.contact?.name || c.contact?.wa_id}</strong>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
                   {c.unread_count > 0 && <span className="unread-badge">{c.unread_count}</span>}
-                  <span className={`badge ${c.status === "ai" ? "ai" : "human"}`}>{c.status === "ai" ? "IA" : "Humano"}</span>
+                  <span className={`badge ${c.status === "ai" ? "ai" : c.status === "resolved" ? "resolved" : "human"}`}>{c.status === "ai" ? "IA" : c.status === "resolved" ? "Resuelta" : "Humano"}</span>
                 </div>
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.2rem" }}>
@@ -328,8 +336,8 @@ export default function Inbox() {
                 <ArrowLeft size={18} />
               </button>
               <span style={{ fontWeight: 600 }}>{selected.contact.name || selected.contact.waId}</span>
-              <span className={`badge ${selected.status === "ai" ? "ai" : "human"}`}>
-                {selected.status === "ai" ? "IA" : "Humano"}
+              <span className={`badge ${selected.status === "ai" ? "ai" : selected.status === "resolved" ? "resolved" : "human"}`}>
+                {selected.status === "ai" ? "IA" : selected.status === "resolved" ? "Resuelta" : "Humano"}
               </span>
               {selected.assignedTo && <span className="badge">Asignado: {selected.assignedTo.name}</span>}
               {selected.status === "ai" && (
@@ -340,6 +348,16 @@ export default function Inbox() {
               {selected.status === "human" && (
                 <button type="button" className="btn btn-ghost btn-sm" onClick={releaseToAi}>
                   Devolver a IA
+                </button>
+              )}
+              {(selected.status === "ai" || selected.status === "human") && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={resolve}>
+                  Resolver
+                </button>
+              )}
+              {selected.status === "resolved" && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={releaseToAi}>
+                  Reabrir
                 </button>
               )}
               {selected.status === "ai" && roles.length > 0 && (
