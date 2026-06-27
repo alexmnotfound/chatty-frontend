@@ -17,7 +17,7 @@ export const mockRules: BotRules = {
   gender: 'neutral',
   greeting: '¡Hola! Soy Vendedor 👋 ¿Qué estás buscando hoy?',
   maxLength: 'short',
-  businessHours: { enabled: true, days: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'], from: '09:00', to: '18:00', tz: 'America/Bogotá' },
+  businessHours: { enabled: true },
   humanHandoff:  { team: 'ventas', activeAgents: 3 },
   instructions: `Sos Vendedor, el asistente comercial de {{empresa}}. Hablás con clientes potenciales por WhatsApp.
 

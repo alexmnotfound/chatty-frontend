@@ -36,8 +36,7 @@ function botToRules(bot: Bot): BotRulesType {
     gender: ((r.gender ?? bot.gender) as BotRulesType['gender']) ?? 'neutral',
     greeting: ((r.greeting ?? bot.greeting) as string | null) ?? '',
     maxLength: ((r.max_length ?? bot.maxLength) as BotRulesType['maxLength'] | null) ?? 'short',
-    businessHours: ((r.business_hours ?? bot.businessHours) as BotRulesType['businessHours'] | null)
-      ?? { enabled: false, days: [], from: '09:00', to: '18:00', tz: 'America/Argentina/Buenos_Aires' },
+    businessHours: { enabled: ((r.business_hours ?? bot.businessHours) as { enabled?: boolean } | null)?.enabled ?? false },
     humanHandoff: ((r.human_handoff ?? bot.humanHandoff) as BotRulesType['humanHandoff'] | null)
       ?? { team: '', activeAgents: 0 },
     instructions: systemPrompt,
@@ -107,7 +106,7 @@ export default function BotRules() {
         systemPrompt: rules.instructions,
         greeting: rules.greeting,
         maxLength: rules.maxLength,
-        businessHours: rules.businessHours,
+        businessHours: { enabled: rules.businessHours?.enabled ?? false },
         humanHandoff: rules.humanHandoff,
         examples: rules.examples.map((ex, i) => ({
           userMessage: ex.userSays,

@@ -9,8 +9,6 @@ interface Props {
   availableProviders?: ModelOption['provider'][];
 }
 
-const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-
 const TONE_OPTIONS: { value: Tone; label: string }[] = [
   { value: 'formal',   label: 'Formal' },
   { value: 'informal', label: 'Informal' },
@@ -97,51 +95,14 @@ export function ParametersSection({ rules, onChange, availableProviders }: Props
           </select>
         </FieldRow>
 
-        <FieldRow name="Horario de atención" hint="Fuera de horario el bot avisa">
+        <FieldRow name="Respetar horario de empresa" hint="Fuera del horario cargado en Configuración, el bot informa al cliente y no procesa consultas.">
           <div className="br-toggle-row">
             <Toggle
               checked={bh.enabled}
-              onChange={v => onChange({ businessHours: { ...bh, enabled: v } })}
-              label="Activar horario"
+              onChange={v => onChange({ businessHours: { enabled: v } })}
+              label="Respetar horario de empresa"
             />
-            <span className="br-toggle-label">Activar horario</span>
           </div>
-          {bh.enabled && (
-            <div className="br-hours-config">
-              <div className="br-day-pills">
-                {DAYS.map(d => (
-                  <button
-                    key={d}
-                    type="button"
-                    className={bh.days.includes(d) ? 'br-day-pill br-day-pill--on' : 'br-day-pill'}
-                    onClick={() => {
-                      const next = bh.days.includes(d)
-                        ? bh.days.filter(x => x !== d)
-                        : [...bh.days, d];
-                      onChange({ businessHours: { ...bh, days: next } });
-                    }}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
-              <div className="br-inline-fields">
-                <input
-                  className="br-input br-input--sm"
-                  type="time"
-                  value={bh.from}
-                  onChange={e => onChange({ businessHours: { ...bh, from: e.target.value } })}
-                />
-                <span className="br-sep">–</span>
-                <input
-                  className="br-input br-input--sm"
-                  type="time"
-                  value={bh.to}
-                  onChange={e => onChange({ businessHours: { ...bh, to: e.target.value } })}
-                />
-              </div>
-            </div>
-          )}
         </FieldRow>
 
         <FieldRow name="Derivación a humano" hint="El bot transfiere cuando no puede resolver">
