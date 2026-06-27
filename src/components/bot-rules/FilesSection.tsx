@@ -138,7 +138,7 @@ export function FilesSection({ files, onUpload, onDelete, onPasteText, uploading
       </div>
 
       {showPaste && (
-        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
           <input
             className="br-input"
             placeholder="Nombre del documento (opcional)"
@@ -154,10 +154,10 @@ export function FilesSection({ files, onUpload, onDelete, onPasteText, uploading
             style={{ resize: 'vertical' }}
           />
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button className="br-btn-secondary" onClick={() => { setShowPaste(false); setPasteText(''); setPasteName(''); }}>
+            <button className="br-btn-sm secondary" onClick={() => { setShowPaste(false); setPasteText(''); setPasteName(''); }}>
               Cancelar
             </button>
-            <button className="br-btn-primary" disabled={!pasteText.trim() || savingPaste} onClick={handlePasteSave}>
+            <button className="br-btn-sm" disabled={!pasteText.trim() || savingPaste} onClick={handlePasteSave}>
               {savingPaste ? 'Guardando…' : 'Guardar texto'}
             </button>
           </div>
