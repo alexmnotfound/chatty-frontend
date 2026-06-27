@@ -106,7 +106,14 @@ export default function Inbox() {
     team.list().then(setTeamMembers);
     botsApi.list().then(setBotList).catch(console.error);
 
-    // Filters on non-PK columns require REPLICA IDENTITY FULL; omit them and rely on RLS.
+    // Poll every 4s as a fallback while realtime is diagnosed.
+    const pollInterval = window.setInterval(() => {
+      loadConversations();
+      const activeId = activeConversationIdRef.current;
+      if (activeId) loadMessages(activeId);
+    }, 4000);
+
+    // Realtime (bonus — events arrive sooner when working).
     const channel = supabase.channel('inbox-' + member.companyId)
       .on('postgres_changes', {
         event: '*',
@@ -142,7 +149,7 @@ export default function Inbox() {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { window.clearInterval(pollInterval); supabase.removeChannel(channel); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [member?.companyId]);
 
