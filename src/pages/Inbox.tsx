@@ -147,7 +147,7 @@ export default function Inbox() {
     conversations.get(conversationId)
       .then((updated) => {
         setSelected(updated);
-        if (updated.unreadCount > 0) {
+        if ((updated as any).unread_count > 0) {
           markAsRead(updated.id);
         }
       })
@@ -198,7 +198,7 @@ export default function Inbox() {
   };
   const toggleReadState = () => {
     if (!selected) return;
-    const markAsUnread = selected.unreadCount === 0;
+    const markAsUnread = (selected as any).unread_count === 0;
     conversations.setReadState(selected.id, markAsUnread).then((updated) => {
       setSelected(updated);
       loadConversations();
@@ -339,7 +339,7 @@ export default function Inbox() {
                 + Nueva tarea
               </button>
               <button type="button" className="btn btn-ghost btn-sm" onClick={toggleReadState}>
-                {selected.unreadCount > 0 ? "Marcar como leída" : "Marcar como no leída"}
+                {(selected as any).unread_count > 0 ? "Marcar como leída" : "Marcar como no leída"}
               </button>
             </div>
             {showNewTask && (

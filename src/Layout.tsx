@@ -60,7 +60,7 @@ export default function Layout() {
       try {
         const list = await conversations.list();
         if (cancelled) return;
-        const total = list.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+        const total = list.reduce((acc, c) => acc + ((c as any).unread_count || 0), 0);
         setInboxUnreadTotal(total);
       } catch {
         if (!cancelled) setInboxUnreadTotal(0);
