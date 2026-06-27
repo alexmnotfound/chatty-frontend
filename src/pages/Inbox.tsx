@@ -95,6 +95,7 @@ export default function Inbox() {
 
   async function markAsRead(convId: string) {
     await conversations.setReadState(convId, false).catch(() => null);
+    loadConversations();
   }
 
   useEffect(() => {
@@ -105,20 +106,21 @@ export default function Inbox() {
     team.list().then(setTeamMembers);
     botsApi.list().then(setBotList).catch(console.error);
 
+    // Filters on non-PK columns require REPLICA IDENTITY FULL; omit them and rely on RLS.
     const channel = supabase.channel('inbox-' + member.companyId)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'conversations',
-        filter: `company_id=eq.${member.companyId}`,
       }, () => {
         loadConversations();
+        const activeId = activeConversationIdRef.current;
+        if (activeId) loadMessages(activeId);
       })
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-        filter: `company_id=eq.${member.companyId}`,
       }, (payload) => {
         const activeId = activeConversationIdRef.current;
         const convId = (payload.new as { conversation_id?: string })?.conversation_id;
