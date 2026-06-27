@@ -459,6 +459,41 @@ export const bots = {
     }),
 };
 
+export interface BotDocument {
+  id: string;
+  name: string;
+  source_type: 'pdf' | 'txt' | 'paste';
+  size_bytes: number;
+  status: 'processing' | 'active' | 'error';
+  created_at: string;
+}
+
+export const botDocuments = {
+  list: (botId: string) => api<BotDocument[]>(`/bots/${botId}/documents`),
+  uploadFile: async (botId: string, file: File): Promise<BotDocument> => {
+    const token = await getToken();
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch(`${BASE}/bots/${botId}/documents`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: fd,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(typeof err.error === 'string' ? err.error : 'No se pudo subir el archivo');
+    }
+    return res.json();
+  },
+  pasteText: (botId: string, text: string, name: string) =>
+    api<BotDocument>(`/bots/${botId}/documents`, {
+      method: 'POST',
+      body: JSON.stringify({ text, name }),
+    }),
+  delete: (botId: string, docId: string) =>
+    api<void>(`/bots/${botId}/documents/${docId}`, { method: 'DELETE' }),
+};
+
 export const botTemplates = {
   list: () => api<BotTemplate[]>("/bots/templates"),
 };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { bots, settings, type Bot, type BotStats } from '../api';
+import { bots, botDocuments, settings, type Bot, type BotStats, type BotDocument } from '../api';
+import type { BotFile } from '../components/bot-rules/types';
 import type { BotRules as BotRulesType, ModelId, TabId } from '../components/bot-rules/types';
 import { PageHeader } from '../components/bot-rules/PageHeader';
 import { StatStrip } from '../components/bot-rules/StatStrip';
@@ -55,12 +56,29 @@ export default function BotRules() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [availableProviders, setAvailableProviders] = useState<('openai' | 'claude')[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  function docToFile(doc: BotDocument): BotFile {
+    const d = new Date(doc.created_at);
+    const indexedAt = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    return {
+      id: doc.id,
+      name: doc.name,
+      kind: doc.source_type,
+      sizeBytes: doc.size_bytes ?? 0,
+      indexedAt,
+      status: doc.status === 'active' ? 'active' : doc.status === 'processing' ? 'processing' : doc.status === 'error' ? 'error' : 'review',
+    };
+  }
 
   useEffect(() => {
     if (!id) { navigate('/bots', { replace: true }); return; }
     bots.get(id).then(bot => {
       setRules(botToRules(bot));
     }).catch(() => setError('No se pudo cargar el bot.'));
+    botDocuments.list(id).then(docs => {
+      patch({ files: docs.map(docToFile) });
+    }).catch(() => {});
     bots.stats(id).then(setStats).catch(() => {});
   }, [id, navigate]);
 
@@ -124,7 +142,33 @@ export default function BotRules() {
         {activeTab === 'parameters'   && <ParametersSection   rules={rules} onChange={patch} availableProviders={availableProviders} />}
         {activeTab === 'instructions' && <InstructionsSection rules={rules} onChange={patch} />}
         {activeTab === 'examples'     && <ExamplesSection     examples={rules.examples} onChange={(ex) => patch({ examples: ex })} />}
-        {activeTab === 'files'        && <FilesSection        files={rules.files} />}
+        {activeTab === 'files'        && <FilesSection
+          botId={id!}
+          files={rules.files}
+          uploading={uploading}
+          onUpload={async (file) => {
+            setUploading(true);
+            try {
+              const doc = await botDocuments.uploadFile(id!, file);
+              patch({ files: [...(rules?.files ?? []), docToFile(doc)] });
+            } finally {
+              setUploading(false);
+            }
+          }}
+          onDelete={async (docId) => {
+            await botDocuments.delete(id!, docId);
+            patch({ files: (rules?.files ?? []).filter(f => f.id !== docId) });
+          }}
+          onPasteText={async (text, name) => {
+            setUploading(true);
+            try {
+              const doc = await botDocuments.pasteText(id!, text, name);
+              patch({ files: [...(rules?.files ?? []), docToFile(doc)] });
+            } finally {
+              setUploading(false);
+            }
+          }}
+        />}
       </main>
 
       <LivePreviewPanel

@@ -51,8 +51,8 @@ function mockExamples(): Example[] {
 
 function mockFiles(): BotFile[] {
   return [
-    { id: 'f1', name: 'catalogo-2026-q1.pdf',          kind: 'pdf', sizeBytes: 1_200_000, indexedAt: 'hace 2 h',     status: 'active' },
-    { id: 'f2', name: 'precios-lista-mayoristas.xlsx', kind: 'xls', sizeBytes:   340_000, indexedAt: 'ayer',         status: 'active' },
-    { id: 'f3', name: 'politicas-devoluciones.docx',   kind: 'doc', sizeBytes:    88_000, indexedAt: 'hace 3 días',  status: 'review' },
+    { id: 'f1', name: 'catalogo-2026-q1.pdf',          kind: 'pdf',   sizeBytes: 1_200_000, indexedAt: 'hace 2 h',     status: 'active' },
+    { id: 'f2', name: 'precios-lista-mayoristas.txt',  kind: 'txt',   sizeBytes:   340_000, indexedAt: 'ayer',         status: 'active' },
+    { id: 'f3', name: 'politicas-devoluciones',        kind: 'paste', sizeBytes:    88_000, indexedAt: 'hace 3 días',  status: 'review' },
   ];
 }

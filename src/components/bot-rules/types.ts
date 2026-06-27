@@ -47,10 +47,10 @@ export interface Example {
 export interface BotFile {
   id: string;
   name: string;
-  kind: 'pdf' | 'xls' | 'doc';
+  kind: 'pdf' | 'txt' | 'paste';
   sizeBytes: number;
-  indexedAt: string;                               // relative: "hace 2 h"
-  status: 'active' | 'review';
+  indexedAt: string;
+  status: 'active' | 'review' | 'processing' | 'error';
 }
 
 export interface BotStats {
